@@ -147,22 +147,26 @@ inputDate: #input string to $s0
 	addi	$a1, $0, 11
 	syscall
 	
-	addi	$sp, $sp, -4
-	sw	$ra, 0($sp)	
+	addi	$sp, $sp, -8
+	sw	$ra, 4($sp)
+	sw	$a0, 0($sp)	
 
 	jal	checkSyntax
 	add	$t0, $v0, $0	#if $t0 = 0 -> syntax error
 	beq	$t0, $0, invaild
 
+	
 	#checklogic
-	#jal	checkLogic
-	#add	$t0, $v0, $0	#if $t0 = 0 -> syntax error
-	#beq	$t0, $0, invaild
+	
+	jal	checkLogic
+	add	$t0, $v0, $0	#if $t0 = 0 -> syntax error
+	beq	$t0, $0, invaild
 
 
 	#vaild:
-	add	$v0, $a0, $0	#return $s0
-	lw	$ra, 0($sp)
+	lw	$v0, 0($sp) 	#return $a0	
+	lw	$ra, 4($sp)
+	addi	$sp, $sp, 8
 	jr	$ra
 
 	invaild:
@@ -182,16 +186,17 @@ checkSyntax:	#bool check(string str)
 	addi	$t5, $0, 57	# character '9'
 
 	add	$t0, $0, $0 	#	i=0
+	add	$t6, $0, $0	#	count_slash=0
 
         loop_st:
-	slti	$t1, $t0, 10	#	if i < 10 -> t1 = 1
-	beq	$t1, $0, out_st	#	if i >= 10 -> break
+	
+	#slti	$t1, $t0, 10	#	if i < 10 -> t1 = 1
+	#beq	$t1, $0, out_st	#	if i >= 10 -> break
 	add	$t1, $a0, $t0	#	t1 = a0 + t0 <=> t1 = str+i
 	lb	$t2, 0($t1)	#	t2 = str[i]
 	
 	addi	$t1, $t2, -10	#	t1 = (str[i] == '\n')
 	beq	$t1, $0, out_st
-	
 
 	#check here
 	slt	$t1, $t2, $t4	#	t1 = (str[i] < 47)
@@ -199,10 +204,18 @@ checkSyntax:	#bool check(string str)
 	slt	$t1, $t5, $t2	#	t1 = (57 < str[i])
 	bne	$t1, $0, end_st	#	if t1==1 -> return false
 	
+	sub	$t1, $t2, $t4
+	bne	$t1, $0, skip	#	if(str[i]=='/')
+	addi	$t6, $t6, 1	#	count++
+	skip:	
+
 	addi	$t0, $t0, 1	# 	i++
 	j	loop_st
-
+	
 	out_st:	#return true
+		add	$t2, $0, $0	# replace '\n' = 0
+		addi	$t6, $t6, -2	#if(count!=2) return false
+		bne	$t6, $0, end_st
 		addi	$v0, $0, 1
 		jr	$ra
 	end_st:	#return false
@@ -210,9 +223,43 @@ checkSyntax:	#bool check(string str)
 		jr	$ra
 
 #################################################	
-checkLogic:	#bool checkLogic(string str)
+checkLogic:	#bool checkLogic(string str) str=$a0
+	addi	$sp, $sp, -4
+	sw	$ra, 0($sp)
 	
-		
+	addi	$sp, $sp, -4
+	sw	$s0, 0($sp)
+	
+	jal	Day
+	add	$t0, $v0, $0	#	$t0 = day
+	li	$v0, 1
+	add	$a0, $t1, $0
+	syscall 
+
+
+
+	jal	Month
+	add	$t1, $v0, $0	#	$t1 = month
+	li	$v0, 1
+	add	$a0, $t2, $0
+	syscall
+
+	jal	Year
+	add	$t2, $v0, $0	#	$t2 = year
+	li	$v0, 1
+	add	$a0, $t1, $0
+	syscall 
+
+	
+	
+	 
+
+
+	lw	$s0, 0($sp)
+	addi	$sp, $sp, 4
+
+	lw	$ra, 0($sp)
+	addi	$sp, $sp, 4
 
 	out_lg:	#return true
 		addi	$v0, $0, 1
