@@ -36,10 +36,9 @@ main:
 
 #-------------------------------------------------------------
 
-Day:
-	#Luu cac bien duoc su dung trong stack
-	addi $sp, $sp, 4
-	sw $a0, 0($sp)		#Luu bien $a0
+Day:	
+	addi $sp, $sp, -4
+	sw $a0, ($sp)
 	
 	move $a0, $s0	
 	#Lay Day tu char* TIME
@@ -56,18 +55,17 @@ Day:
 		j LoopDay
 	ExitLoopDay:
 	
-	move $v0, $t0			#Luu $v0 = $s1 de tra ve
+	move $v0, $t0			#Luu $v0 de tra ve	
 	
-	#Pop cac dia chi ra khoi stack theo thu tu nguoc voi Push
-	lw $a0, 0($sp)
+	lw $a0, ($sp)
 	addi $sp, $sp, 4
+	
 	
 	#thoat thu tuc
 	jr $ra
 
 #-------------------------------------------------------------	
-Month:
-	#Luu cac bien duoc su dung trong stack
+Month:	
 	addi $sp, $sp, -4
 	sw $a0, ($sp)
 	
@@ -93,16 +91,15 @@ Month:
 		j LoopMonth
 	ExitLoopMonth:
 	
-	move $v0, $t0	
-	#Lay các dia chi ra khoi stack
+	move $v0, $t0		
+	
 	lw $a0, ($sp)
 	addi $sp, $sp, 4
 	
 	jr $ra
 
 #-------------------------------------------------------------
-Year:
-	#Luu cac bien duoc su dung trong stack
+Year:	
 	addi $sp, $sp, -4
 	sw $a0, ($sp)
 	
@@ -133,7 +130,7 @@ Year:
 	ExitLoopYear:
 	
 	move $v0, $t0	
-	#Lay các dia chi ra khoi stack
+	
 	lw $a0, ($sp)
 	addi $sp, $sp, 4
 	
@@ -239,16 +236,22 @@ checkLogic:	#bool checkLogic(string str) str=$a0
 	
 	#test, need to replace a0 = getDay, a1 = getMonth, a2= getYear
 	#addi 	$a0, $0, 12
+
 	jal Day
 	move 	$a0, $v0
 	
+
 	#addi	$a1, $0, 2
+	
 	jal Month
 	move 	$a1, $v0
+	
+	
 	#addi	$a2, $0, 2012	
+	
 	jal Year
 	move 	$a2, $v0
-
+	
 	#check
 	slti	$t3, $a0, 1
 	bne	$t3, $0, checkLogic_invaild	#day < 1
