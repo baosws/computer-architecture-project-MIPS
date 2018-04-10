@@ -38,29 +38,29 @@ main:
 
 Day:
 	#Luu cac bien duoc su dung trong stack
-	addi $sp, $sp, -10
-	sb $a0, 0($sp)		#Luu bien $a0
+	addi $sp, $sp, 4
+	sw $a0, 0($sp)		#Luu bien $a0
 	
-	
+	move $a0, $s0	
 	#Lay Day tu char* TIME
-	add $s0, $zero, $0
-	addi $t0, $zero, 10
+	add $t0, $zero, $0
+	addi $t1, $zero, 10
 	LoopDay:
-		lb $t1, 0($a0)		#L?y ký t? ??u tiên 	
-		sub $s1, $t1, 48
-		bltz $s1, ExitLoopDay	#Neu kí tu là '/' thì thoat		
-		mult $s0, $t0
-		mflo $s0		#Nho hon 32bit
-		add $s0, $s0, $s1
+		lb $t2, 0($a0)		#ky tu trong $a0
+		addi $t2, $t2, -48
+		bltz $t2, ExitLoopDay	#Neu kí tu là '/' thì thoat		
+		mult $t0, $t1
+		mflo $t0		#Nho hon 32bit
+		add $t0, $t0, $t2
 		addi $a0, $a0, 1
 		j LoopDay
 	ExitLoopDay:
 	
-	move $v0, $s0			#Luu $v0 = $s1 de tra ve
+	move $v0, $t0			#Luu $v0 = $s1 de tra ve
 	
 	#Pop cac dia chi ra khoi stack theo thu tu nguoc voi Push
-	lb $a0, 0($sp)
-	addi $sp, $sp, 10
+	lw $a0, 0($sp)
+	addi $sp, $sp, 4
 	
 	#thoat thu tuc
 	jr $ra
@@ -68,72 +68,74 @@ Day:
 #-------------------------------------------------------------	
 Month:
 	#Luu cac bien duoc su dung trong stack
-	subu $sp, $sp, 4
-	sw $t0, ($sp)
+	addi $sp, $sp, -4
+	sw $a0, ($sp)
 	
+	move $a0,$s0
 	#Lay Month tu char* TIME
-	add $s0, $zero, $0	
-	addi $t0, $zero, 10	#bien tam gan = 10
+	add $t0, $zero, $0	
+	addi $t1, $zero, 10	#bien tam gan = 10
 	#Di den so cua month
 	GoMonth:
-		lb $t1, 0($a0)
+		lb $t2, 0($a0)
 		addi $a0, $a0, 1	#$a0++
-		beq $t1, 47, LoopMonth	#Ky tu '/' dau tien		
+		beq $t2, 47, LoopMonth	#Ky tu '/' dau tien		
 		j GoMonth
 			
 	LoopMonth:
-		lb $t1, 0($a0)
-		sub $s1, $t1, 48
-		bltz $s1, ExitLoopMonth	#La ky tu '/'			
-		mult $s0, $t0
-		mflo $s0
-		add $s0, $s0, $s1
+		lb $t2, 0($a0)
+		addi $t2, $t2, -48
+		bltz $t2, ExitLoopMonth	#La ky tu '/'			
+		mult $t0, $t1
+		mflo $t0
+		add $t0, $t0, $t2
 		addi $a0, $a0, 1
 		j LoopMonth
 	ExitLoopMonth:
 	
-	move $v0, $s0	
-	#Lay các dia chi ra khii stack
-	lw $t0, ($sp)
-	addu $sp, $sp, 4
+	move $v0, $t0	
+	#Lay các dia chi ra khoi stack
+	lw $a0, ($sp)
+	addi $sp, $sp, 4
 	
 	jr $ra
 
 #-------------------------------------------------------------
 Year:
 	#Luu cac bien duoc su dung trong stack
-	subu $sp, $sp, 4
-	sw $t0, ($sp)
+	addi $sp, $sp, -4
+	sw $a0, ($sp)
 	
+	move $a0, $s0
 	#Lay Year tu char* TIME
-	add $s0, $zero, $0	
-	addi $t0, $zero, 10	#bien tam gan = 10
-	add $t1, $zero, $0	#Dem ky tu '/'
+	add $t0, $zero, $0	#Ket qua
+	addi $t1, $zero, 10	#bien tam gan = 10
+	add $t3, $zero, $0	#Dem ky tu '/'
 	#Di den so cua year
 	GoYear:
 		lb $t2, 0($a0)
 		addi $a0, $a0, 1	#$a0++
 		bne $t2, 47, Continue	#Ky tu '/' 			
-		addi $t1, $t1, 1	#Tang dem ky tu '/'
+		addi $t3, $t3, 1	#Tang dem ky tu '/'
 		Continue:
-		beq $t1, 2, LoopYear	
+			beq $t3, 2, LoopYear	
 		j GoYear
 			
 	LoopYear:
-		lb $t2, 0($a0)
-		sub $s1, $t2, 48		
-		mult $s0, $t0		#lo = $s0 * 10 
-		mflo $s0	
-		add $s0, $s0, $s1			
+		lb $t2, 0($a0)	
+		addi $t2, $t2, -48
+		bltz $t2, ExitLoopYear	#Neu la ky tu ket thuc chuoi '\0' || < 0	
+		mult $t0, $t1		#lo = $s0 * 10 
+		mflo $t0	
+		add $t0, $t0, $t2			
 		addi $a0, $a0, 1
-		beq $a0, $a1, ExitLoopYear	#neu chay toi cuoi do dai chuoi
 		j LoopYear
 	ExitLoopYear:
 	
-	move $v0, $s0	
+	move $v0, $t0	
 	#Lay các dia chi ra khoi stack
-	lw $t0, ($sp)
-	addu $sp, $sp, 4
+	lw $a0, ($sp)
+	addi $sp, $sp, 4
 	
 	jr $ra
 
@@ -236,9 +238,16 @@ checkLogic:	#bool checkLogic(string str) str=$a0
 	
 	
 	#test, need to replace a0 = getDay, a1 = getMonth, a2= getYear
-	addi 	$a0, $0, 12
-	addi	$a1, $0, 2
-	addi	$a2, $0, 2012	
+	#addi 	$a0, $0, 12
+	jal Day
+	move 	$a0, $v0
+	
+	#addi	$a1, $0, 2
+	jal Month
+	move 	$a1, $v0
+	#addi	$a2, $0, 2012	
+	jal Year
+	move 	$a2, $v0
 
 	#check
 	slti	$t3, $a0, 1
