@@ -188,6 +188,7 @@ checkSyntax:	#bool check(string str)
 	add	$t0, $0, $0 	#	i=0
 	add	$t6, $0, $0	#	count_slash=0
 
+	lw	$a0, 0($sp)
         loop_st:
 	
 	#slti	$t1, $t0, 10	#	if i < 10 -> t1 = 1
@@ -224,51 +225,138 @@ checkSyntax:	#bool check(string str)
 
 #################################################	
 checkLogic:	#bool checkLogic(string str) str=$a0
+	
+	lw	$s0, 0($sp)
+
 	addi	$sp, $sp, -4
 	sw	$ra, 0($sp)
 	
 	addi	$sp, $sp, -4
 	sw	$s0, 0($sp)
 	
-	jal	Day
-	add	$t0, $v0, $0	#	$t0 = day
-	li	$v0, 1
-	add	$a0, $t1, $0
-	syscall 
-
-
-
-	jal	Month
-	add	$t1, $v0, $0	#	$t1 = month
-	li	$v0, 1
-	add	$a0, $t2, $0
-	syscall
-
-	jal	Year
-	add	$t2, $v0, $0	#	$t2 = year
-	li	$v0, 1
-	add	$a0, $t1, $0
-	syscall 
-
 	
+	#test, need to replace a0 = getDay, a1 = getMonth, a2= getYear
+	addi 	$a0, $0, 12
+	addi	$a1, $0, 2
+	addi	$a2, $0, 2012	
+
+	#check
+	slti	$t3, $a0, 1
+	bne	$t3, $0, checkLogic_invaild	#day < 1
+	slti	$t3, $a1, 1
+	bne	$t3, $0, checkLogic_invaild	#month < 1
+	slti	$t3, $a2, 1
+	bne	$t3, $0, checkLogic_invaild	#year < 1
+	slti	$t3, $a1, 13
+	beq	$t3, $0, checkLogic_invaild	#month <= 12
 	
-	 
+	addi	$sp, $sp, -8
+	sw	$a1, 0($sp)
+	sw	$a2, 4($sp)
+	jal	month_number	#get the mumber of month
+	add	$t4, $v0, $0	#$t4 = number of mOnth 
 
+	slt	$t3, $t4, $a0
+	bne	$t3, $0, checkLogic_invaild	#day <= numberofmonth
+	
 
-	lw	$s0, 0($sp)
+	addi 	$sp, $sp, 8 
 	addi	$sp, $sp, 4
-
 	lw	$ra, 0($sp)
 	addi	$sp, $sp, 4
 
-	out_lg:	#return true
+	checkLogic_vaild:	#return true
 		addi	$v0, $0, 1
 		jr	$ra
-	end_lg:	#return false
+	checkLogic_invaild:	#return false
 		addi 	$v0, $0, 0
 		jr	$ra
 
 
+month_number:
+	lw	$a1, 0($sp)	# month
+	lw	$a2, 4($sp)	# year
+	
+	addi	$sp, $sp, -8
+	sw	$ra, 4($sp)
+	sw	$a2, 0($sp)	#store year
+	
+	
+	addi 	$t3, $a1, -1	#t3= month - 1
+	beq	$t3, $0, cs31
+	addi 	$t3, $a1, -3	#t3= month - 1
+	beq	$t3, $0, cs31
+	addi 	$t3, $a1, -5	#t3= month - 1
+	beq	$t3, $0, cs31
+	addi 	$t3, $a1, -7	#t3= month - 1
+	beq	$t3, $0, cs31
+	addi 	$t3, $a1, -8	#t3= month - 1
+	beq	$t3, $0, cs31
+	addi 	$t3, $a1, -10	#t3= month - 1
+	beq	$t3, $0, cs31
+	addi 	$t3, $a1, -12	#t3= month - 1
+	beq	$t3, $0, cs31
+
+	addi 	$t3, $a1, -4	#t3= month - 4
+	beq	$t3, $0, cs30
+	addi 	$t3, $a1, -6	#t3= month - 4
+	beq	$t3, $0, cs30
+	addi 	$t3, $a1, -9	#t3= month - 4
+	beq	$t3, $0, cs30
+	addi 	$t3, $a1, -11	#t3= month - 4
+	beq	$t3, $0, cs30
+
+	#case 2
+	jal	is_leap_year
+	add	$t2, $v0, $0	#if leap() then t2 = 1
+	beq	$t2, $0, cs28	#if leap == false
+	addi	$v0, $0, 29
+	j end_chklg
+
+	cs28:
+		addi $v0, $0, 28
+		j end_chklg
+	cs31:
+		addi $v0, $0, 31
+		j end_chklg
+	cs30:
+		addi $v0, $0, 30
+		j end_chklg
+
+end_chklg:
+	lw	$ra, 4($sp)
+	addi	$sp, $sp, 8
+
+	jr	$ra
+
+is_leap_year:
+	lw	$a2, 0($sp)	#year
+	
+	addi	$t4, $0, 4
+	addi	$t8, $0, 400	
+	addi	$t9, $0, 100
+ 
+	div	$a2, $t8	
+	mfhi	$t5
+	beq 	$t5, 0, leap_true	#if year % 400 == 0 -> true
+	
+	div 	$a2, $t4
+	mfhi	$t5
+	bne	$t5, 0, leap_false	#if yeaer % 4 !=0 -> false
+	#else
+	div 	$a2, $t9
+	mfhi	$t5
+	bne	$t5, 0, leap_true	#if yeaer % 100 !=0 -> true	
+
+	
+	leap_false:
+		addi $v0, $0, 0
+		jr	$ra
+
+	leap_true:
+		addi $v0, $0, 1
+		jr $ra
+	
 #################################################
 printNewLine:
 	#print newline
