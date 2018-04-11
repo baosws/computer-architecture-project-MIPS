@@ -40,14 +40,16 @@ Day:
 	addi $sp, $sp, -4
 	sw $a0, ($sp)
 	
-	move $a0, $s0	
+	add $a0, $s0 $0
 	#Lay Day tu char* TIME
 	add $t0, $zero, $0
 	addi $t1, $zero, 10
 	LoopDay:
 		lb $t2, 0($a0)		#ky tu trong $a0
 		addi $t2, $t2, -48
-		bltz $t2, ExitLoopDay	#Neu kí tu là '/' thì thoat		
+		#bltz $t2, ExitLoopDay	#Neu kí tu là '/' thì thoat	
+		slt $t3, $t2, $0
+		beq $t3, 1, ExitLoopDay
 		mult $t0, $t1
 		mflo $t0		#Nho hon 32bit
 		add $t0, $t0, $t2
@@ -55,7 +57,7 @@ Day:
 		j LoopDay
 	ExitLoopDay:
 	
-	move $v0, $t0			#Luu $v0 de tra ve	
+	add $v0, $t0, $0			#Luu $v0 de tra ve	
 	
 	lw $a0, ($sp)
 	addi $sp, $sp, 4
@@ -69,7 +71,7 @@ Month:
 	addi $sp, $sp, -4
 	sw $a0, ($sp)
 	
-	move $a0,$s0
+	add $a0, $s0, $0
 	#Lay Month tu char* TIME
 	add $t0, $zero, $0	
 	addi $t1, $zero, 10	#bien tam gan = 10
@@ -83,7 +85,9 @@ Month:
 	LoopMonth:
 		lb $t2, 0($a0)
 		addi $t2, $t2, -48
-		bltz $t2, ExitLoopMonth	#La ky tu '/'			
+		#bltz $t2, ExitLoopMonth	#La ky tu '/'	
+		slt $t3, $t2, $0
+		beq $t3, 1, ExitLoopMonth		
 		mult $t0, $t1
 		mflo $t0
 		add $t0, $t0, $t2
@@ -91,7 +95,7 @@ Month:
 		j LoopMonth
 	ExitLoopMonth:
 	
-	move $v0, $t0		
+	add $v0, $t0, $0
 	
 	lw $a0, ($sp)
 	addi $sp, $sp, 4
@@ -103,7 +107,7 @@ Year:
 	addi $sp, $sp, -4
 	sw $a0, ($sp)
 	
-	move $a0, $s0
+	add $a0, $s0, $0
 	#Lay Year tu char* TIME
 	add $t0, $zero, $0	#Ket qua
 	addi $t1, $zero, 10	#bien tam gan = 10
@@ -121,7 +125,10 @@ Year:
 	LoopYear:
 		lb $t2, 0($a0)	
 		addi $t2, $t2, -48
-		bltz $t2, ExitLoopYear	#Neu la ky tu ket thuc chuoi '\0' || < 0	
+		#bltz $t2, ExitLoopYear	#Neu la ky tu ket thuc chuoi '\0' || < 0
+		slt $t3, $t2, $0	#$t3 = 1 if ($t2<0)
+		beq $t3, 1, ExitLoopMonth
+			
 		mult $t0, $t1		#lo = $s0 * 10 
 		mflo $t0	
 		add $t0, $t0, $t2			
@@ -129,7 +136,7 @@ Year:
 		j LoopYear
 	ExitLoopYear:
 	
-	move $v0, $t0	
+	add $v0, $t0, $0	
 	
 	lw $a0, ($sp)
 	addi $sp, $sp, 4
