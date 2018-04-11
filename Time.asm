@@ -127,7 +127,7 @@ Year:
 		addi $t2, $t2, -48
 		#bltz $t2, ExitLoopYear	#Neu la ky tu ket thuc chuoi '\0' || < 0
 		slt $t3, $t2, $0	#$t3 = 1 if ($t2<0)
-		beq $t3, 1, ExitLoopMonth
+		beq $t3, 1, ExitLoopYear
 			
 		mult $t0, $t1		#lo = $s0 * 10 
 		mflo $t0	
