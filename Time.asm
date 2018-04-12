@@ -3,7 +3,8 @@
 	userInfo2: .asciiz "\nYou typed in: "
 	userInput: .space 10
 	lengthInput: .space 4
-
+	time1_test: .asciiz "08/12/2018"
+	time2_test: .asciiz "09/09/2016"
 
 	#chien
 	strData: .space 11
@@ -17,19 +18,16 @@
 
 .text 
 main:
-	la $a0, userInfo1
-	li $v0, 4 		#in ra man hinh userInfo1
-	syscall	
+	la $a0, time2_test
+	la $a1, time1_test
 	
-	jal 	inputDate
-	add	$s0, $v0, $0	#$s0 = stringDate
+	jal LeapYear
 	
-	addi	$v0, $0, 4	
-	add	$a0, $s0, $0
+	add $a0, $v0, $0
+	addi $v0, $0, 1
 	syscall
 	
-	
-	#Thoát chuong trình
+	#Thoï¿½t chuong trï¿½nh
 	li $v0, 10
 	syscall
 	
@@ -37,19 +35,16 @@ main:
 #-------------------------------------------------------------
 
 Day:	
-	addi $sp, $sp, -4
-	sw $a0, ($sp)
-	
-	add $a0, $s0 $0
-	#Lay Day tu char* TIME
 	add $t0, $zero, $0
 	addi $t1, $zero, 10
 	LoopDay:
 		lb $t2, 0($a0)		#ky tu trong $a0
 		addi $t2, $t2, -48
-		#bltz $t2, ExitLoopDay	#Neu kí tu là '/' thì thoat	
+		# t2 < '0' -> exit
 		slt $t3, $t2, $0
 		beq $t3, 1, ExitLoopDay
+		
+		# t0 = t0 * t1 + t2 = t0 * 10 + t2
 		mult $t0, $t1
 		mflo $t0		#Nho hon 32bit
 		add $t0, $t0, $t2
@@ -57,23 +52,14 @@ Day:
 		j LoopDay
 	ExitLoopDay:
 	
-	add $v0, $t0, $0			#Luu $v0 de tra ve	
-	
-	lw $a0, ($sp)
-	addi $sp, $sp, 4
-	
+	add $v0, $t0, $0			#Luu $v0 de tra ve		
 	
 	#thoat thu tuc
 	jr $ra
 
 #-------------------------------------------------------------	
 Month:	
-	addi $sp, $sp, -4
-	sw $a0, ($sp)
-	
-	add $a0, $s0, $0
-	#Lay Month tu char* TIME
-	add $t0, $zero, $0	
+	add $t0, $zero, $0
 	addi $t1, $zero, 10	#bien tam gan = 10
 	#Di den so cua month
 	GoMonth:
@@ -81,11 +67,10 @@ Month:
 		addi $a0, $a0, 1	#$a0++
 		beq $t2, 47, LoopMonth	#Ky tu '/' dau tien		
 		j GoMonth
-			
+
 	LoopMonth:
 		lb $t2, 0($a0)
 		addi $t2, $t2, -48
-		#bltz $t2, ExitLoopMonth	#La ky tu '/'	
 		slt $t3, $t2, $0
 		beq $t3, 1, ExitLoopMonth		
 		mult $t0, $t1
@@ -97,18 +82,10 @@ Month:
 	
 	add $v0, $t0, $0
 	
-	lw $a0, ($sp)
-	addi $sp, $sp, 4
-	
 	jr $ra
 
 #-------------------------------------------------------------
-Year:	
-	addi $sp, $sp, -4
-	sw $a0, ($sp)
-	
-	add $a0, $s0, $0
-	#Lay Year tu char* TIME
+Year:
 	add $t0, $zero, $0	#Ket qua
 	addi $t1, $zero, 10	#bien tam gan = 10
 	add $t3, $zero, $0	#Dem ky tu '/'
@@ -121,7 +98,7 @@ Year:
 		Continue:
 			beq $t3, 2, LoopYear	
 		j GoYear
-			
+
 	LoopYear:
 		lb $t2, 0($a0)	
 		addi $t2, $t2, -48
@@ -137,9 +114,6 @@ Year:
 	ExitLoopYear:
 	
 	add $v0, $t0, $0	
-	
-	lw $a0, ($sp)
-	addi $sp, $sp, 4
 	
 	jr $ra
 
@@ -291,42 +265,44 @@ checkLogic:	#bool checkLogic(string str) str=$a0
 		addi 	$v0, $0, 0
 		jr	$ra
 
-
+# a0: month, a1: year
 month_number:
-	lw	$a1, 0($sp)	# month
-	lw	$a2, 4($sp)	# year
+	addi $t0, $a0, -1
+	beq	$t0, $0, cs31 # month = 1
 	
-	addi	$sp, $sp, -8
-	sw	$ra, 4($sp)
-	sw	$a2, 0($sp)	#store year
+	addi $t0, $a0, -3
+	beq	$t0, $0, cs31 # month = 3
 	
+	addi $t0, $a0, -5
+	beq	$t0, $0, cs31 # month = 5
 	
-	addi 	$t3, $a1, -1	#t3= month - 1
-	beq	$t3, $0, cs31
-	addi 	$t3, $a1, -3	#t3= month - 1
-	beq	$t3, $0, cs31
-	addi 	$t3, $a1, -5	#t3= month - 1
-	beq	$t3, $0, cs31
-	addi 	$t3, $a1, -7	#t3= month - 1
-	beq	$t3, $0, cs31
-	addi 	$t3, $a1, -8	#t3= month - 1
-	beq	$t3, $0, cs31
-	addi 	$t3, $a1, -10	#t3= month - 1
-	beq	$t3, $0, cs31
-	addi 	$t3, $a1, -12	#t3= month - 1
-	beq	$t3, $0, cs31
+	addi $t0, $a0, -7
+	beq	$t0, $0, cs31 # month = 7
+	
+	addi $t0, $a0, -8
+	beq	$t0, $0, cs31 # month = 8
+	
+	addi $t0, $a0, -10
+	beq	$t0, $0, cs31 # month = 10
+	
+	addi $t0, $a0, -12
+	beq	$t0, $0, cs31 # month = 12
 
-	addi 	$t3, $a1, -4	#t3= month - 4
-	beq	$t3, $0, cs30
-	addi 	$t3, $a1, -6	#t3= month - 4
-	beq	$t3, $0, cs30
-	addi 	$t3, $a1, -9	#t3= month - 4
-	beq	$t3, $0, cs30
-	addi 	$t3, $a1, -11	#t3= month - 4
-	beq	$t3, $0, cs30
+	addi $t0, $a0, -4
+	beq	$t0, $0, cs30 # month = 4
+	
+	addi $t0, $a0, -6
+	beq	$t0, $0, cs30 # month = 6
+	
+	addi $t0, $a0, -9
+	beq	$t0, $0, cs30 # month = 9
+	
+	addi $t0, $a0, -11
+	beq	$t0, $0, cs30 # month = 11
 
-	#case 2
-	jal	is_leap_year
+	# month = 2
+	addi $sp, $sp,  -4
+	jal	is_leap
 	add	$t2, $v0, $0	#if leap() then t2 = 1
 	beq	$t2, $0, cs28	#if leap == false
 	addi	$v0, $0, 29
@@ -347,35 +323,48 @@ end_chklg:
 	addi	$sp, $sp, 8
 
 	jr	$ra
+###################################################################
+# a0: year
+is_leap:
+	addi	$t0, $0, 400
+	div	$a0, $t0
+	mfhi	$t0
+	beq 	$t0, $0, leap_true	#if year % 400 == 0 -> true
+	
+	addi $t0, $0, 4
+	div 	$a0, $t0
+	mfhi	$t0
+	bne	$t0, $0, leap_false	#if year % 4 !=0 -> false
+	
+	addi $t0, $0, 100
+	div 	$a0, $t0
+	mfhi	$t0
+	bne	$t0, $0, leap_true	#if year % 100 !=0 -> true
 
-is_leap_year:
-	lw	$a2, 0($sp)	#year
-	
-	addi	$t4, $0, 4
-	addi	$t8, $0, 400	
-	addi	$t9, $0, 100
- 
-	div	$a2, $t8	
-	mfhi	$t5
-	beq 	$t5, 0, leap_true	#if year % 400 == 0 -> true
-	
-	div 	$a2, $t4
-	mfhi	$t5
-	bne	$t5, 0, leap_false	#if yeaer % 4 !=0 -> false
-	#else
-	div 	$a2, $t9
-	mfhi	$t5
-	bne	$t5, 0, leap_true	#if yeaer % 100 !=0 -> true	
-
-	
 	leap_false:
-		addi $v0, $0, 0
+		add $v0, $0, $0
 		jr	$ra
 
 	leap_true:
 		addi $v0, $0, 1
 		jr $ra
+
+###################################################################
+# a0: time
+LeapYear:
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
 	
+	jal Year
+	add $a0, $v0, $0
+	
+	jal is_leap
+	
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+	
+	jr $ra
+
 #################################################
 printNewLine:
 	#print newline
@@ -384,3 +373,32 @@ printNewLine:
 	syscall
 
 	jr	$ra
+
+#################################################
+# $a0: time1, $a1: time2
+get_time:
+	# top = $ra -> $a1 -> $a0
+	addi $sp, $sp, -12
+	sw $a0, 0($sp)
+	sw $a1, 4($sp)
+	sw $ra, 8($sp)
+	
+	jal Year
+	add $s0, $v0, $0
+	
+	# top = $ra -> $s0 -> $a0
+	lw $a0, 4($sp)
+	sw $s0, 4($sp)
+	
+	jal Year
+	add $s1, $v0, $0
+	lw $s0, 4($sp)
+	lw $ra, 8($sp)
+	addi $sp, $sp, 12
+	
+	sub $v0, $s0, $s1
+	slt $t0, $v0, $0
+	beq $t0, $0, exit_get_time
+	sub $v0, $0, $v0
+	exit_get_time:
+		jr $ra
