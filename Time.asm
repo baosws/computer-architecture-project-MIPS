@@ -4,7 +4,7 @@
 	userInput: .space 10
 	lengthInput: .space 4
 	time1_test: .asciiz "08/12/2018"
-	time2_test: .asciiz "09/09/2016"
+	time2_test: .asciiz "09/09/1998"
 
 	#chien
 	strData: .space 11
@@ -14,6 +14,13 @@
 	msg_Invaild: .asciiz "The date inputed is invaild"
 	msg_Vaild: .asciiz "The date inputed is Vaild"
 
+	Sun: .asciiz "Sun"
+	Mon: .asciiz "Mon"
+	Tue: .asciiz "Tue"
+	Wed: .asciiz "Wed"
+	Thurs: .asciiz "Thurs"
+	Fri: .asciiz "Fri"
+	Sat: .asciiz "Sat"
 #-------------------------------------------------------------
 
 .text 
@@ -21,14 +28,14 @@ main:
 	la $a0, time2_test
 	la $a1, time1_test
 	
-	jal LeapYear
+	jal WeakDay
 	
 	add $a0, $v0, $0
-	addi $v0, $0, 1
+	addi $v0, $0, 4
 	syscall
 	
 	#Tho�t chuong tr�nh
-	li $v0, 10
+	addi $v0, $0, 10
 	syscall
 	
 
@@ -302,7 +309,11 @@ month_number:
 
 	# month = 2
 	addi $sp, $sp,  -4
+	sw $ra, 0($sp)
 	jal	is_leap
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+	
 	add	$t2, $v0, $0	#if leap() then t2 = 1
 	beq	$t2, $0, cs28	#if leap == false
 	addi	$v0, $0, 29
@@ -318,11 +329,8 @@ month_number:
 		addi $v0, $0, 30
 		j end_chklg
 
-end_chklg:
-	lw	$ra, 4($sp)
-	addi	$sp, $sp, 8
-
-	jr	$ra
+	end_chklg:
+		jr	$ra
 ###################################################################
 # a0: year
 is_leap:
@@ -366,17 +374,8 @@ LeapYear:
 	jr $ra
 
 #################################################
-printNewLine:
-	#print newline
-	addi	$v0, $0, 4
-	la	$a0, newLine
-	syscall
-
-	jr	$ra
-
-#################################################
 # $a0: time1, $a1: time2
-get_time:
+GetTime:
 	# top = $ra -> $a1 -> $a0
 	addi $sp, $sp, -12
 	sw $a0, 0($sp)
@@ -401,4 +400,177 @@ get_time:
 	beq $t0, $0, exit_get_time
 	sub $v0, $0, $v0
 	exit_get_time:
+		jr $ra
+#######################################################################
+# a0: time
+WeakDay:
+	addi $sp, $sp, -16
+	sw $a0, 0($sp)
+	sw $ra, 4($sp)
+	
+	jal Day
+	sw $v0, 8($sp)
+	
+	lw $a0, 0($sp)
+	jal Month
+	sw $v0, 12($sp)
+	
+	lw $a0, 0($sp)
+	jal Year
+	add $s2, $v0, $0 # year
+	
+	lw $ra, 4($sp)
+	lw $s0, 8($sp) # day
+	lw $s1, 12($sp) # month
+	addi $sp, $sp, 16
+	
+	addi $sp, $sp, -16
+	sw $ra, 0($sp)
+	sw $s0, 4($sp) # day
+	sw $s1, 8($sp) # month
+	sw $s2, 12($sp) # year
+	
+	add $a0, $s2, $0
+	jal is_leap
+	add $s3, $v0, $0 # is leap
+	lw $ra, 0($sp)
+	lw $s0, 4($sp)
+	lw $s1, 8($sp)
+	lw $s2, 12($sp)
+	addi $sp, $sp, 16
+	
+	addi $s4, $s2, -1
+	addi $t0, $0, 100
+	div $s4, $t0
+	mflo $s4 # century
+	
+	addi $t0, $0, 100
+	div $s2, $t0
+	mfhi $s2
+	add $s0, $s0, $s2
+	# now: sum = d + y
+	
+	addi $t0, $0, 4
+	div $s2, $t0
+	mflo $s2
+	add $s0, $s0, $s2
+	# now: sum = d + y + y / 4
+	
+	add $s0, $s0, $s4
+	# now: sum = d + y + y / 4 + c
+	
+	addi $t0, $0, 2
+	slt $t1, $s1, $t0
+	mult $s3, $t1
+	mflo $s3
+	
+	addi $t0, $0, 1
+	beq $s1, $t0, m0
+	
+	addi $t0, $0, 2
+	beq $s1, $t0, m3
+	
+	addi $t0, $0, 3
+	beq $s1, $t0, m3
+	
+	addi $t0, $0, 4
+	beq $s1, $t0, m6
+	
+	addi $t0, $0, 5
+	beq $s1, $t0, m1
+	
+	addi $t0, $0, 6
+	beq $s1, $t0, m4
+	
+	addi $t0, $0, 7
+	beq $s1, $t0, m6
+	
+	addi $t0, $0, 8
+	beq $s1, $t0, m2
+	
+	addi $t0, $0, 9
+	beq $s1, $t0, m5
+	
+	addi $t0, $0, 10
+	beq $s1, $t0, m0
+	
+	addi $t0, $0, 11
+	beq $s1, $t0, m3
+	
+	addi $t0, $0, 12
+	beq $s1, $t0, m5
+	
+	m0:
+		addi $s1, $0, 0
+		j continue_weakday
+	m1:
+		addi $s1, $0, 1
+		j continue_weakday
+	m2:
+		addi $s1, $0, 2
+		j continue_weakday
+	m3:
+		addi $s1, $0, 3
+		j continue_weakday
+	m4:
+		addi $s1, $0, 4
+		j continue_weakday
+	m5:
+		addi $s1, $0, 5
+		j continue_weakday
+	m6:
+		addi $s1, $0, 6
+		j continue_weakday
+	
+	continue_weakday:
+	add $s0, $s0, $s1
+	# now: sum = d + m + y + y / 4 + cs
+	addi $s0, $s0, 7
+	sub $s0, $s0, $s3
+	
+	addi $t0, $0, 7
+	div $s0, $t0
+	mfhi $s0
+	
+	addi $t0, $0, 0
+	beq $s0, $t0, WD_Sun
+	
+	addi $t0, $0, 1
+	beq $s0, $t0, WD_Mon
+	
+	addi $t0, $0, 2
+	beq $s0, $t0, WD_Tue
+	
+	addi $t0, $0, 3
+	beq $s0, $t0, WD_Wed
+	
+	addi $t0, $0, 4
+	beq $s0, $t0, WD_Thurs
+	
+	addi $t0, $0, 5
+	beq $s0, $t0, WD_Fri
+	
+	addi $t0, $0, 6
+	beq $s0, $t0, WD_Sat
+	
+	WD_Sun:
+		la $v0, Sun
+		jr $ra
+	WD_Mon:
+		la $v0, Mon
+		jr $ra
+	WD_Tue:
+		la $v0, Tue
+		jr $ra
+	WD_Wed:
+		la $v0, Wed
+		jr $ra
+	WD_Thurs:
+		la $v0, Thurs
+		jr $ra
+	WD_Fri:
+		la $v0, Fri
+		jr $ra
+	WD_Sat:
+		la $v0, Sat
 		jr $ra
