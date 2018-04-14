@@ -21,14 +21,10 @@
 	LeapYear2: .asciiz "Khong phai nam nhuan\n"
 
 	time1_test: .asciiz "08/12/2018"
-<<<<<<< HEAD
+
 	time2_test: .asciiz "14/4/1903"
-	
-=======
 	time2_test: .asciiz "14/4/9999"
 
-	#chien
->>>>>>> aba164e8cd0da459f3a3cd96ecbb8e2118e5a935
 	strData: .space 11
 	newLine: .asciiz "\n"
 	slash:	.byte	'/'
@@ -54,18 +50,8 @@
 
 .text
 main:
-<<<<<<< HEAD
 	jal  inputDate
 	#string date is stored in $v0
-=======
-
-<<<<<<< HEAD
-=======
-	jal  inputDate
-	#string date is stored in $v0
-	
-	add	$s0, $v0, $0
->>>>>>> aba164e8cd0da459f3a3cd96ecbb8e2118e5a935
 
 	add	$s0, $0, $v0	#gan chuoi TIME vao $s0 
 	
@@ -73,32 +59,12 @@ main:
 	la	$a0, msg_Vaild
 	syscall
 
-<<<<<<< HEAD
-=======
-	#addi	$v0, $0, 4
-	#add	$a0, $a1, $0
-	#syscall
-	
-	
-
-
-
-
-	#la $a0, time2_test
-	#la $a1, time1_test
-
->>>>>>> 476b04dd454c6e74eb9c1a1cc881676853724b4f
->>>>>>> aba164e8cd0da459f3a3cd96ecbb8e2118e5a935
 	##--------Input information-----------
 	addi	$v0, $0, 4
 	la	$a0, message0
 	syscall
-
-<<<<<<< HEAD
-	la	$a0, message1
-=======
+	
 	la	$a0, message1	
->>>>>>> aba164e8cd0da459f3a3cd96ecbb8e2118e5a935
 	syscall
 
 	la	$a0, message2
@@ -132,20 +98,11 @@ main:
 
 	GetInput:
 	addi	$v0, $0, 12	#read char
-	#addi	$a1, $0, 10
-	#la	$a0, timeInput
 	syscall
-<<<<<<< HEAD
-
-	add $t0, $0, $v0
-	addi $t0, $t0, -48
-	addi $t2, $zero, 1
-=======
-	
 	add 	$t0, $0, $v0
 	addi 	$t0, $t0, -48
 	addi 	$t2, $zero, 1
->>>>>>> aba164e8cd0da459f3a3cd96ecbb8e2118e5a935
+
 	slt	$t1, $t0, $t2	#if $a0<$0 then $t0 =1 else $t0 = 0
 	beq	$t1, 1, ShowError
 
@@ -164,29 +121,13 @@ main:
 	ExitGetInput:
 
 	#-----Call function --------
-<<<<<<< HEAD
-
 	addi	$t2, $0, 1
 	bne	$t0, $t2, Case2		#if $t0!= 1 goto Case2
 		#jal Date		#goi ham Date return char* TIME
 
-
 		add	$t4, $0, $v0	#gan tam ket qua bao $t4
 		la	$a0, messageResult	#print message result
-=======
-	#Callfunc:
-	#addi $t0, $0, 3
-	
-	addi	$t2, $0, 2		
-	bne	$t0, $t2, Case2		#if $t0!= 1 goto Case2 
-		#jal Date		#goi ham Date return char* TIME	
-		#xuat chuoi dd/mm/yyyy
-		addi $v0, $0, 4
-		addi $a0, $s0, 0
-		syscall
-	
-		add	$a0, $0, $v0
->>>>>>> aba164e8cd0da459f3a3cd96ecbb8e2118e5a935
+
 		addi	$v0, $0, 4
 		syscall
 
@@ -578,17 +519,9 @@ to_string:
 	addi	$t1, $t1, 48
 	sb	$t1, 6($v1)
 #cout
-<<<<<<< HEAD
-	addi	$v0, $0, 4
-	la	$a0, strData
-	syscall
-
-=======
 	#addi	$v0, $0, 4
 	#la	$a0, strData
 	#syscall
-	
->>>>>>> aba164e8cd0da459f3a3cd96ecbb8e2118e5a935
 	jr $ra
 
 #################################################
@@ -732,11 +665,8 @@ month_number:
 	end_chklg:
 		jr	$ra
 ###################################################################
-<<<<<<< HEAD
-# a2: year		-- true: (y % 4==0 && y % 100!=0) && (y%400==0)
-=======
-# a0: year
->>>>>>> aba164e8cd0da459f3a3cd96ecbb8e2118e5a935
+# a0: year		-- true: (y % 4==0 && y % 100!=0) && (y%400==0)
+
 is_leap:
 	lw	$a0, 4($sp)
 	addi	$t0, $0, 400
@@ -749,7 +679,7 @@ is_leap:
 	mfhi	$t0
 	bne	$t0, $0, leap_false	#if year % 4 !=0 -> false
 
-	addi $t0, $0, 100
+	addi	$t0, $0, 100
 	div 	$a0, $t0
 	mfhi	$t0
 	bne	$t0, $0, leap_true	#if year % 100 !=0 -> true
@@ -1066,12 +996,5 @@ NeareastLeapYears:
 	Found:
 	add $v0, $s3, $0
 	add $v1, $s4, $0
-<<<<<<< HEAD
+
 	jr $ra
-=======
-<<<<<<< HEAD
-	jr $ra
-=======
-	jr $ra
->>>>>>> 476b04dd454c6e74eb9c1a1cc881676853724b4f
->>>>>>> aba164e8cd0da459f3a3cd96ecbb8e2118e5a935
