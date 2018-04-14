@@ -247,7 +247,7 @@ main:
 
 
 #-------------------------------------------------------------
-
+#$a0 : char* TIME
 Day:
 	add $t0, $zero, $0
 	addi $t1, $zero, 10
@@ -272,6 +272,7 @@ Day:
 	jr $ra
 
 #-------------------------------------------------------------
+#$a0 : char* TIME
 Month:
 	add $t0, $zero, $0
 	addi $t1, $zero, 10	#bien tam gan = 10
@@ -299,6 +300,7 @@ Month:
 	jr $ra
 
 #-------------------------------------------------------------
+#$a0 : char* TIME
 Year:
 	add $t0, $zero, $0	#Ket qua
 	addi $t1, $zero, 10	#bien tam gan = 10
