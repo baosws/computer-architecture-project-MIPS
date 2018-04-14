@@ -3,6 +3,7 @@
 	message0: .asciiz "----Ban hay chon mot trong cac thao tac duoi day (1-6): \n"
 	message1: .asciiz "1.Xuat chuoi TIME theo dinh dang dd/mm/yyyy\n"
 	message2: .asciiz "2.Chuyen doi chuoi TIME theo mot trong cac dinh dang:\n"
+	message2_0: .asciiz "Chon kieu dinh dang(A||B||C): "
 	message2_1: .asciiz "\tA. MM/DD/YYYY\n"
 	message2_2: .asciiz "\tB. Month DD, YYYY\n"
 	message2_3: .asciiz "\tC. DD Month, YYYY\n"
@@ -17,11 +18,9 @@
 	userInput: .space 1
 	timeInput: .space 10
 	
-
-	userInfo1: .asciiz "Enter dd/mm/yyyy: "
-	userInfo2: .asciiz "\nYou typed in: "
+	LeapYear1: .asciiz "La nam nhuan"
+	LeapYear2: .asciiz "Khong phai nam nhuan"
 	
-	lengthInput: .space 4
 	time1_test: .asciiz "08/12/2018"
 	time2_test: .asciiz "14/4/1903"
 
@@ -29,6 +28,7 @@
 	strData: .space 11
 	newLine: .asciiz "\n"
 	slash:	.byte	'/'
+	space:	.byte ' '
 	
 	msg_Invaild: .asciiz "The date inputed is invaild"
 	msg_Vaild: .asciiz "The date inputed is Vaild"
@@ -46,26 +46,11 @@
 
 .text 
 main:
-	#la $a0, time2_test
-	#la $a1, time1_test
-	
-<<<<<<< HEAD
-	#jal LeapYear
-=======
-	jal NeareastLeapYears
->>>>>>> 978d102c6b1819a30a34ad207c9f2f39950c5fa0
-	
-	#add $a0, $v0, $0
-	#addi $v0, $0, 1
-	#syscall
-	
-	
 	##--------Input information-----------
 	addi	$v0, $0, 4
 	la	$a0, message0	
 	syscall
 	
-<<<<<<< HEAD
 	la	$a0, message1	
 	syscall
 	
@@ -96,22 +81,8 @@ main:
 	#---- Read Input ----
 	addi 	$v0, $0, 4
 	la 	$a0, messageInput
-=======
-	la $a0, newLine
-	addi $v0, $0, 4
-	syscall
-	
-	add $a0, $v1, $0
-	addi $v0, $0, 1
-	syscall
-	
-	#Tho�t chuong tr�nh
-	addi $v0, $0, 10
->>>>>>> 978d102c6b1819a30a34ad207c9f2f39950c5fa0
-	syscall
-	
-	GetInput:
-	
+
+	GetInput:	
 	addi	$v0, $0, 12	#read char
 	#addi	$a1, $0, 10
 	#la	$a0, timeInput
@@ -138,9 +109,12 @@ main:
 	ExitGetInput:
 	
 	#-----Call function --------
+	#Callfunc:
+	#addi $t0, $0, 3
+	
 	addi	$t2, $0, 2		
 	bne	$t0, $t2, Case2		#if $t0!= 1 goto Case2 
-		jal Date		#goi ham Date return char* TIME		
+		#jal Date		#goi ham Date return char* TIME		
 		add	$a0, $0, $v0
 		addi	$v0, $0, 4
 		syscall
@@ -152,27 +126,49 @@ main:
 		
 		j ExitProgram
 	Case3:
-		addi	$t2, $t2, 1	#if $t0!=2 goto Case3
+		addi	$t2, $t2, 1	#if $t0!=3 goto Case4
 		bne	$t0, $t2, Case4
-		
-		
+		jal 	WeekDay	
+		add	$a0, $0, $v0
+		addi	$v0, $0, 4
+		syscall		
 		j ExitProgram
 	Case4:
-		addi	$t2, $t2, 1	#if $t0!=2 goto Case3
+		addi	$t2, $t2, 1	
 		bne	$t0, $t2, Case5
+		jal	LeapYear		
 		
+		add	$t3, $0, $v0
+		addi	$v0, $0, 4
+		beq	$t3, $0, NotLeapYear
+		la	$a0, LeapYear1	
+		j PrintLeapYear
+		NotLeapYear:
+			la	$a0, LeapYear2
+		PrintLeapYear: syscall
 		
 		j ExitProgram
-	Case5:
-		addi	$t2, $t2, 1	#if $t0!=2 goto Case3
+	#khoang time giua hai char* TIME
+	Case5:	
+		addi	$t2, $t2, 1	
 		bne	$t0, $t2, Case6
 		
 		
 		j ExitProgram
 	Case6:
+		jal	NeareastLeapYears
+		add	$a0, $0, $v0
+		addi	$v0, $0, 1
+		syscall
 		
+		addi	$v0, $0, 11
+		la	$a0, space
+		syscall
 		
-		
+		add	$a1, $0, $v1
+		addi	$v0, $0, 1
+		syscall
+			
 		j ExitProgram
 	
 	#Tho�t chuong tr�nh
@@ -543,11 +539,10 @@ GetTime:
 	sub $v0, $0, $v0
 	exit_get_time:
 		jr $ra
-<<<<<<< HEAD
-=======
+
 #######################################################################
 # a0: time
-WeakDay:
+WeekDay:
 	addi $sp, $sp, -16
 	sw $a0, 0($sp)
 	sw $ra, 4($sp)
@@ -805,4 +800,4 @@ NeareastLeapYears:
 	add $v0, $s3, $0
 	add $v1, $s4, $0
 	jr $ra
->>>>>>> 978d102c6b1819a30a34ad207c9f2f39950c5fa0
+
