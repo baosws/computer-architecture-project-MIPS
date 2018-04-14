@@ -166,7 +166,7 @@ inputDate: #input string to $s0
 
 
 	#vaild:
-	lw	$v0, 0($sp) 	#return $a0	
+	lw	$v0, 0($sp) 	#return string $a0
 	lw	$ra, 4($sp)
 	addi	$sp, $sp, 8
 	jr	$ra
