@@ -4,7 +4,7 @@
 	userInput: .space 10
 	lengthInput: .space 4
 	time1_test: .asciiz "08/12/2018"
-	time2_test: .asciiz "14/4/1903"
+	time2_test: .asciiz "14/4/9999"
 
 	#chien
 	strData: .space 11
@@ -25,23 +25,14 @@
 
 .text 
 main:
-	la $a0, time2_test
-	la $a1, time1_test
-	
-	jal NeareastLeapYears
-	
-	add $a0, $v0, $0
-	addi $v0, $0, 1
+	addi $v0, $0, 8
+	la $a0, strData
+	addi $a1, $0, 10
 	syscall
 	
-	la $a0, newLine
+	la $a0, strData
 	addi $v0, $0, 4
 	syscall
-	
-	add $a0, $v1, $0
-	addi $v0, $0, 1
-	syscall
-	
 	#Tho�t chuong tr�nh
 	addi $v0, $0, 10
 	syscall
