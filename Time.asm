@@ -1,8 +1,26 @@
 .data 
-	userInfo1: .asciiz "Enter dd/mm/yyyy: "
-	userInfo2: .asciiz "\nYou typed in: "
-	userInput: .space 10
-	lengthInput: .space 4
+	#Input 
+	message0: .asciiz "----Ban hay chon mot trong cac thao tac duoi day (1-6): \n"
+	message1: .asciiz "1.Xuat chuoi TIME theo dinh dang dd/mm/yyyy\n"
+	message2: .asciiz "2.Chuyen doi chuoi TIME theo mot trong cac dinh dang:\n"
+	message2_0: .asciiz "Chon kieu dinh dang(A||B||C): "
+	message2_1: .asciiz "\tA. MM/DD/YYYY\n"
+	message2_2: .asciiz "\tB. Month DD, YYYY\n"
+	message2_3: .asciiz "\tC. DD Month, YYYY\n"
+	message3: .asciiz "3.Cho biet ngay vua nhap la ngay thu may trong tuan\n"
+	message4: .asciiz "4.Kiem tra co phai nam Nhuan\n"
+	message5: .asciiz "5.Cho biet khong thoi gian giua chuoi TIME_1 va TIME_2\n"
+	message6: .asciiz "6.Cho biet hai nam nhuan gan nhat voi nam trong chuoi\n"
+	
+	messageInput: .asciiz "Nhap lua chon: "
+	messageResult: .asciiz "Ket qua: "
+	errorMessage: .asciiz "\nSai dinh dang. Nhap lai: "
+	userInput: .space 1
+	timeInput: .space 10
+	
+	LeapYear1: .asciiz "La nam nhuan"
+	LeapYear2: .asciiz "Khong phai nam nhuan"
+	
 	time1_test: .asciiz "08/12/2018"
 	time2_test: .asciiz "14/4/1903"
 
@@ -10,6 +28,7 @@
 	strData: .space 11
 	newLine: .asciiz "\n"
 	slash:	.byte	'/'
+	space:	.byte ' '
 	
 	msg_inp_day: .asciiz "Input Day: "
 	msg_inp_month: .asciiz "Input Month: "	
@@ -17,6 +36,8 @@
 
 	msg_Invaild: .asciiz "The date inputed is invaild"
 	msg_Vaild: .asciiz "The date inputed is Vaild"
+	
+	
 
 	Sun: .asciiz "Sun"
 	Mon: .asciiz "Mon"
@@ -29,6 +50,7 @@
 
 .text 
 main:
+<<<<<<< HEAD
 	jal  inputDate
 	#string date is stored in $v0
 	
@@ -49,24 +71,137 @@ main:
 
 	la $a0, time2_test
 	la $a1, time1_test
+=======
+	##--------Input information-----------
+	addi	$v0, $0, 4
+	la	$a0, message0	
+	syscall
+>>>>>>> 03993aa99818e7e28d90e0008bad71a6cd91e429
 	
-	jal NeareastLeapYears
-	
-	add $a0, $v0, $0
-	addi $v0, $0, 1
+	la	$a0, message1	
 	syscall
 	
-	la $a0, newLine
-	addi $v0, $0, 4
+	la	$a0, message2	
 	syscall
 	
-	add $a0, $v1, $0
-	addi $v0, $0, 1
+	la	$a0, message2_1
 	syscall
+	
+	la	$a0, message2_2
+	syscall
+	
+	la	$a0, message2_3
+	syscall
+	
+	la	$a0, message3	
+	syscall
+	
+	la	$a0, message4
+	syscall
+	
+	la	$a0, message5	
+	syscall
+	
+	la	$a0, message6	
+	syscall
+	
+	#---- Read Input ----
+	addi 	$v0, $0, 4
+	la 	$a0, messageInput
+
+	GetInput:	
+	addi	$v0, $0, 12	#read char
+	#addi	$a1, $0, 10
+	#la	$a0, timeInput
+	syscall
+	
+	add $t0, $0, $v0
+	addi $t0, $t0, -48
+	addi $t2, $zero, 1
+	slt	$t1, $t0, $t2	#if $a0<$0 then $t0 =1 else $t0 = 0
+	beq	$t1, 1, ShowError
+	
+	addi	$t2, $zero, 6	#$t2= 9
+	slt	$t1, $t2, $t0	#if 9 < $t0 then $t1 =1
+	beq	$t1, 1, ShowError
+	
+	j ExitGetInput
+	
+	ShowError:
+		addi	$v0, $0, 4
+		la 	$a0, errorMessage
+		syscall
+		j GetInput
+	
+	ExitGetInput:
+	
+	#-----Call function --------
+	#Callfunc:
+	#addi $t0, $0, 3
+	
+	addi	$t2, $0, 2		
+	bne	$t0, $t2, Case2		#if $t0!= 1 goto Case2 
+		#jal Date		#goi ham Date return char* TIME		
+		add	$a0, $0, $v0
+		addi	$v0, $0, 4
+		syscall
+		j ExitProgram	
+	Case2:
+		addi	$t2, $t2, 1	#if $t0!=2 goto Case3
+		bne	$t0, $t2, Case3
+		
+		
+		j ExitProgram
+	Case3:
+		addi	$t2, $t2, 1	#if $t0!=3 goto Case4
+		bne	$t0, $t2, Case4
+		jal 	WeekDay	
+		add	$a0, $0, $v0
+		addi	$v0, $0, 4
+		syscall		
+		j ExitProgram
+	Case4:
+		addi	$t2, $t2, 1	
+		bne	$t0, $t2, Case5
+		jal	LeapYear		
+		
+		add	$t3, $0, $v0
+		addi	$v0, $0, 4
+		beq	$t3, $0, NotLeapYear
+		la	$a0, LeapYear1	
+		j PrintLeapYear
+		NotLeapYear:
+			la	$a0, LeapYear2
+		PrintLeapYear: syscall
+		
+		j ExitProgram
+	#khoang time giua hai char* TIME
+	Case5:	
+		addi	$t2, $t2, 1	
+		bne	$t0, $t2, Case6
+		
+		
+		j ExitProgram
+	Case6:
+		jal	NeareastLeapYears
+		add	$a0, $0, $v0
+		addi	$v0, $0, 1
+		syscall
+		
+		addi	$v0, $0, 11
+		la	$a0, space
+		syscall
+		
+		add	$a1, $0, $v1
+		addi	$v0, $0, 1
+		syscall
+			
+		j ExitProgram
 	
 	#Tho�t chuong tr�nh
-	addi $v0, $0, 10
-	syscall
+	ExitProgram:
+		li	$v0, 10
+		syscall
 	
 
 #-------------------------------------------------------------
@@ -518,9 +653,10 @@ GetTime:
 	sub $v0, $0, $v0
 	exit_get_time:
 		jr $ra
+
 #######################################################################
 # a0: time
-WeakDay:
+WeekDay:
 	addi $sp, $sp, -16
 	sw $a0, 0($sp)
 	sw $ra, 4($sp)
@@ -778,3 +914,7 @@ NeareastLeapYears:
 	add $v0, $s3, $0
 	add $v1, $s4, $0
 	jr $ra
+<<<<<<< HEAD
+=======
+
+>>>>>>> 03993aa99818e7e28d90e0008bad71a6cd91e429
