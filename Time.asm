@@ -11,6 +11,10 @@
 	newLine: .asciiz "\n"
 	slash:	.byte	'/'
 	
+	msg_inp_day: .asciiz "Input Day: "
+	msg_inp_month: .asciiz "Input Month: "	
+	msg_inp_year: .asciiz "Input Year: "
+
 	msg_Invaild: .asciiz "The date inputed is invaild"
 	msg_Vaild: .asciiz "The date inputed is Vaild"
 
@@ -25,6 +29,24 @@
 
 .text 
 main:
+	jal  inputDate
+	#string date is stored in $v0
+	
+	add	$a1, $v0, $0
+
+	addi	$v0, $0, 4
+	la	$a0, msg_Vaild
+	syscall
+
+	addi	$v0, $0, 4
+	add	$a0, $a1, $0
+	syscall
+	
+	
+
+
+
+
 	la $a0, time2_test
 	la $a1, time1_test
 	
@@ -133,35 +155,121 @@ Year:
 	jr $ra
 
 #-------------------------------------------------------------
-
+string_to_int:
+	lw	$a0, 0($sp)	#strin
+	
+	addi 	$t0, $0, 0	#i=0
+	addi	$v0, $0, 0
+	addi	$t4, $0, 10
+	loop_str_to_int:
+	slti 	$t1, $t0, 4	#t1 = (i<4)
+	beq	$t1, $0, return_true_str_to_int
+	
+	add	$t1, $a0, $t0	#	t1 = a0 + t0 <=> t1 = str+i
+	lb	$t2, 0($t1)	#					t2 = str[i]
+	
+	addi	$t1, $t2, -10	#	t1 = (str[i] == '\n')
+	beq	$t1, $0, return_true_str_to_int
+	
+	#check here
+	slti	$t1, $t2, 48	#	t1 = (str[i] < 48) ('0' = 48)
+	bne	$t1, $0, return_false_str_to_int
+	slti	$t1, $t2, 58	#	t1 = (str[i]<58)
+	beq	$t1, $0, return_false_str_to_int	#	if t1==1 -> return false
+	
+	mul	$v0, $v0, $t4	#v0 = v0*10
+	addi	$t1, $t2, -48
+	add 	$v0, $v0, $t1	#v0 = v0*10+(str[i] - 48)
+	
+	addi 	$t0, $t0, 1
+	j	loop_str_to_int
+	
+	return_true_str_to_int:
+		jr	$ra
+	return_false_str_to_int:
+		addi 	$v0,$0, -1
+		jr	$ra
 ##################################################################################################
-inputDate: #input string to $s0
-	#read in string
+inputDate: 
+
+	#print "input day"
+	la $a0, msg_inp_day
+	addi $v0, $0, 4
+	syscall
+
+	#read in Day
 	addi	$v0, $0, 8
 	la	$a0, strData
 	addi	$a1, $0, 11
 	syscall
 	
 	addi	$sp, $sp, -8
+	sw	$a0, 0($sp)	
 	sw	$ra, 4($sp)
+
+	jal 	string_to_int
+	add	$t5, $v0, $0	#t5 = day
+	addi	$sp, $sp, 4
+	
+
+	#print "input MONTH"
+	la 	$a0, msg_inp_month
+	addi 	$v0, $0, 4
+	syscall
+
+	#read in Month
+	addi	$v0, $0, 8
+	la	$a0, strData
+	addi	$a1, $0, 11
+	syscall
+	
+	addi	$sp, $sp, -4
 	sw	$a0, 0($sp)	
 
-	jal	checkSyntax
-	add	$t0, $v0, $0	#if $t0 = 0 -> syntax error
-	beq	$t0, $0, invaild
+	jal 	string_to_int
+	add	$t6, $v0, $0	#t6 = month
+	addi	$sp, $sp, 4
+
+	#print "input YEAR"
+	la $a0, msg_inp_year
+	addi $v0, $0, 4
+	syscall
+
+	#read in YEAR
+	addi	$v0, $0, 8
+	la	$a0, strData
+	addi	$a1, $0, 11
+	syscall
+	
+	addi	$sp, $sp, -4
+	sw	$a0, 0($sp)	
+
+	jal 	string_to_int
+	add	$t7, $v0, $0	#t7 = year
+	add	$t2, $0, 2012
+	addi	$sp, $sp, 4
 
 	
 	#checklogic
-	
+	addi 	$sp, $sp, -12
+	sw	$t5, 0($sp)	#day
+	sw	$t6, 4($sp)	#month	
+	sw	$t7, 8($sp)	#year
+		
+
 	jal	checkLogic
-	add	$t0, $v0, $0	#if $t0 = 0 -> syntax error
-	beq	$t0, $0, invaild
+	add	$t3, $v0, $0	#if $t0 = 0 -> syntax error
+
+	beq	$t3, $0, invaild
 
 
 	#vaild:
-	lw	$v0, 0($sp) 	#return string $a0
-	lw	$ra, 4($sp)
-	addi	$sp, $sp, 8
+	jal	to_string
+	add	$v0, $v1, $0	
+
+	addi	$sp, $sp, 12
+	lw	$ra, 0($sp)
+	addi 	$sp, $sp, 4
 	jr	$ra
 
 	invaild:
@@ -174,80 +282,81 @@ inputDate: #input string to $s0
 	addi 	$v0, $0, 10
 	syscall	
 
-#################################################
-checkSyntax:	#bool check(string str)
+######
+to_string:
+	lw	$a0, 0($sp)	#day
+	lw	$a1, 4($sp)	#month	
+	lw	$a2, 8($sp)	#year
 
-	addi	$t4, $0, 47	# slash '/'
-	addi	$t5, $0, 57	# character '9'
+	la	$v1, strData
+	addi	$t4, $0, 10	
 
-	add	$t0, $0, $0 	#	i=0
-	add	$t6, $0, $0	#	count_slash=0
+	div	$a0, $t4
+	mfhi	$t1	#du
+	mflo	$t2	#nguyen
+	addi	$t1, $t1, 48
+	sb	$t1, 1($v1)
+	addi	$t2, $t2, 48
+	sb	$t2, 0($v1)
 
-	lw	$a0, 0($sp)
-        loop_st:
+	addi	$t1, $0, 47
+	sb	$t1, 2($v1)
+	sb	$t1, 5($v1)
+	sb	$0, 10($v1)
+
+#month
+	div	$a1, $t4
+	mfhi	$t1	#du
+	mflo	$t2	#nguyen
+	addi	$t1, $t1, 48
+	sb	$t1, 4($v1)
+	addi	$t2, $t2, 48
+	sb	$t2, 3($v1)
+
+
+#year
 	
-	#slti	$t1, $t0, 10	#	if i < 10 -> t1 = 1
-	#beq	$t1, $0, out_st	#	if i >= 10 -> break
-	add	$t1, $a0, $t0	#	t1 = a0 + t0 <=> t1 = str+i
-	lb	$t2, 0($t1)	#	t2 = str[i]
-	
-	addi	$t1, $t2, -10	#	t1 = (str[i] == '\n')
-	beq	$t1, $0, out_st
+	div	$a2, $t4
+	mfhi	$t1	#du
+	mflo	$a2	#nguyen
+	addi	$t1, $t1, 48
+	sb	$t1, 9($v1)
 
-	#check here
-	slt	$t1, $t2, $t4	#	t1 = (str[i] < 47)
-	bne	$t1, $0, end_st
-	slt	$t1, $t5, $t2	#	t1 = (57 < str[i])
-	bne	$t1, $0, end_st	#	if t1==1 -> return false
-	
-	sub	$t1, $t2, $t4
-	bne	$t1, $0, skip	#	if(str[i]=='/')
-	addi	$t6, $t6, 1	#	count++
-	skip:	
+	div	$a2, $t4
+	mfhi	$t1	#du
+	mflo	$a2	#nguyen
+	addi	$t1, $t1, 48
+	sb	$t1, 8($v1)
 
-	addi	$t0, $t0, 1	# 	i++
-	j	loop_st
+
+	div	$a2, $t4
+	mfhi	$t1	#du
+	mflo	$a2	#nguyen
+	addi	$t1, $t1, 48
+	sb	$t1, 7($v1)
 	
-	out_st:	#return true
-		add	$t2, $0, $0	# replace '\n' = 0
-		addi	$t6, $t6, -2	#if(count!=2) return false
-		bne	$t6, $0, end_st
-		addi	$v0, $0, 1
-		jr	$ra
-	end_st:	#return false
-		addi 	$v0, $0, 0
-		jr	$ra
+
+	div	$a2, $t4
+	mfhi	$t1	#du
+	mflo	$a2	#nguyen
+	addi	$t1, $t1, 48
+	sb	$t1, 6($v1)
+#cout
+	addi	$v0, $0, 4
+	la	$a0, strData
+	syscall
+	
+	jr $ra
 
 #################################################	
-checkLogic:	#bool checkLogic(string str) str=$a0
-	
-	lw	$s0, 0($sp)
-
-	addi	$sp, $sp, -4
-	sw	$ra, 0($sp)
-	
-	addi	$sp, $sp, -4
-	sw	$s0, 0($sp)
+checkLogic:	#bool checkLogic(int day, int month, int  year)
 	
 	
-	#test, need to replace a0 = getDay, a1 = getMonth, a2= getYear
-	#addi 	$a0, $0, 12
-
-	jal Day
-	move 	$a0, $v0
+	lw	$a0, 0($sp)	#day
+	lw	$a1, 4($sp)	#month	
+	lw	$a2, 8($sp)	#year
 	
-
-	#addi	$a1, $0, 2
-	
-	jal Month
-	move 	$a1, $v0
-	
-	
-	#addi	$a2, $0, 2012	
-	
-	jal Year
-	move 	$a2, $v0
-	
+	#a0 - day, a1-month, a2-year
 	#check
 	slti	$t3, $a0, 1
 	bne	$t3, $0, checkLogic_invaild	#day < 1
@@ -258,20 +367,17 @@ checkLogic:	#bool checkLogic(string str) str=$a0
 	slti	$t3, $a1, 13
 	beq	$t3, $0, checkLogic_invaild	#month <= 12
 	
-	addi	$sp, $sp, -8
-	sw	$a1, 0($sp)
-	sw	$a2, 4($sp)
-	jal	month_number	#get the mumber of month
-	add	$t4, $v0, $0	#$t4 = number of mOnth 
+	addi	$sp, $sp, -12
+	sw	$ra, 0($sp)
+	sw	$a1, 4($sp)
+	sw	$a2, 8($sp)
 
+	jal	month_number	#get the mumber of month
+	lw	$ra, 0($sp)
+	addi	$sp, $sp, 12
+	add	$t4, $v0, $0	#$t4 = number of mOnth 
 	slt	$t3, $t4, $a0
 	bne	$t3, $0, checkLogic_invaild	#day <= numberofmonth
-	
-
-	addi 	$sp, $sp, 8 
-	addi	$sp, $sp, 4
-	lw	$ra, 0($sp)
-	addi	$sp, $sp, 4
 
 	checkLogic_vaild:	#return true
 		addi	$v0, $0, 1
@@ -282,45 +388,48 @@ checkLogic:	#bool checkLogic(string str) str=$a0
 
 # a0: month, a1: year
 month_number:
-	addi $t0, $a0, -1
+	lw	$a1, 4($sp) #a1= month
+	lw	$a2, 8($sp) #a2 = yaer
+
+	addi $t0, $a1, -1
 	beq	$t0, $0, cs31 # month = 1
 	
-	addi $t0, $a0, -3
+	addi $t0, $a1, -3
 	beq	$t0, $0, cs31 # month = 3
 	
-	addi $t0, $a0, -5
+	addi $t0, $a1, -5
 	beq	$t0, $0, cs31 # month = 5
 	
-	addi $t0, $a0, -7
+	addi $t0, $a1, -7
 	beq	$t0, $0, cs31 # month = 7
 	
-	addi $t0, $a0, -8
+	addi $t0, $a1, -8
 	beq	$t0, $0, cs31 # month = 8
 	
-	addi $t0, $a0, -10
+	addi $t0, $a1, -10
 	beq	$t0, $0, cs31 # month = 10
 	
-	addi $t0, $a0, -12
+	addi $t0, $a1, -12
 	beq	$t0, $0, cs31 # month = 12
 
-	addi $t0, $a0, -4
+	addi $t0, $a1, -4
 	beq	$t0, $0, cs30 # month = 4
 	
-	addi $t0, $a0, -6
+	addi $t0, $a1, -6
 	beq	$t0, $0, cs30 # month = 6
 	
-	addi $t0, $a0, -9
+	addi $t0, $a1, -9
 	beq	$t0, $0, cs30 # month = 9
 	
-	addi $t0, $a0, -11
+	addi $t0, $a1, -11
 	beq	$t0, $0, cs30 # month = 11
 
 	# month = 2
-	addi $sp, $sp,  -4
-	sw $ra, 0($sp)
+	addi 	$sp, $sp,  -4
+	sw 	$ra, 0($sp)
 	jal	is_leap
-	lw $ra, 0($sp)
-	addi $sp, $sp, 4
+	lw	$ra, 0($sp)
+	addi  	$sp, $sp, 4
 	
 	add	$t2, $v0, $0	#if leap() then t2 = 1
 	beq	$t2, $0, cs28	#if leap == false
@@ -340,20 +449,20 @@ month_number:
 	end_chklg:
 		jr	$ra
 ###################################################################
-# a0: year
+# a2: year
 is_leap:
 	addi	$t0, $0, 400
-	div	$a0, $t0
+	div	$a2, $t0
 	mfhi	$t0
 	beq 	$t0, $0, leap_true	#if year % 400 == 0 -> true
 	
-	addi $t0, $0, 4
-	div 	$a0, $t0
+	addi 	$t0, $0, 4
+	div 	$a2, $t0
 	mfhi	$t0
 	bne	$t0, $0, leap_false	#if year % 4 !=0 -> false
 	
 	addi $t0, $0, 100
-	div 	$a0, $t0
+	div 	$a2, $t0
 	mfhi	$t0
 	bne	$t0, $0, leap_true	#if year % 100 !=0 -> true
 
