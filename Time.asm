@@ -50,34 +50,33 @@
 
 .text 
 main:
-<<<<<<< HEAD
+
 	jal  inputDate
 	#string date is stored in $v0
 	
-	add	$a1, $v0, $0
+	add	$s0, $v0, $0
 
 	addi	$v0, $0, 4
 	la	$a0, msg_Vaild
 	syscall
 
-	addi	$v0, $0, 4
-	add	$a0, $a1, $0
-	syscall
+	#addi	$v0, $0, 4
+	#add	$a0, $a1, $0
+	#syscall
 	
 	
 
 
 
 
-	la $a0, time2_test
-	la $a1, time1_test
-=======
+	#la $a0, time2_test
+	#la $a1, time1_test
+
 	##--------Input information-----------
 	addi	$v0, $0, 4
 	la	$a0, message0	
 	syscall
->>>>>>> 03993aa99818e7e28d90e0008bad71a6cd91e429
-	
+
 	la	$a0, message1	
 	syscall
 	
@@ -115,9 +114,9 @@ main:
 	#la	$a0, timeInput
 	syscall
 	
-	add $t0, $0, $v0
-	addi $t0, $t0, -48
-	addi $t2, $zero, 1
+	add 	$t0, $0, $v0
+	addi 	$t0, $t0, -48
+	addi 	$t2, $zero, 1
 	slt	$t1, $t0, $t2	#if $a0<$0 then $t0 =1 else $t0 = 0
 	beq	$t1, 1, ShowError
 	
@@ -141,7 +140,12 @@ main:
 	
 	addi	$t2, $0, 2		
 	bne	$t0, $t2, Case2		#if $t0!= 1 goto Case2 
-		#jal Date		#goi ham Date return char* TIME		
+		#jal Date		#goi ham Date return char* TIME	
+		#xuat chuoi dd/mm/yyyy
+		addi $v0, $0, 4
+		addi $a0, $s0, 0
+		syscall
+	
 		add	$a0, $0, $v0
 		addi	$v0, $0, 4
 		syscall
@@ -477,9 +481,9 @@ to_string:
 	addi	$t1, $t1, 48
 	sb	$t1, 6($v1)
 #cout
-	addi	$v0, $0, 4
-	la	$a0, strData
-	syscall
+	#addi	$v0, $0, 4
+	#la	$a0, strData
+	#syscall
 	
 	jr $ra
 
@@ -914,7 +918,3 @@ NeareastLeapYears:
 	add $v0, $s3, $0
 	add $v1, $s4, $0
 	jr $ra
-<<<<<<< HEAD
-=======
-
->>>>>>> 03993aa99818e7e28d90e0008bad71a6cd91e429
