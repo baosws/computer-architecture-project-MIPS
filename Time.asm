@@ -46,18 +46,7 @@
 
 .text 
 main:
-<<<<<<< HEAD
-	addi $v0, $0, 8
-	la $a0, strData
-	addi $a1, $0, 10
-	syscall
-	
-	la $a0, strData
-	addi $v0, $0, 4
-	syscall
-	#Tho�t chuong tr�nh
-	addi $v0, $0, 10
-=======
+
 	##--------Input information-----------
 	addi	$v0, $0, 4
 	la	$a0, message0	
@@ -85,7 +74,6 @@ main:
 	syscall
 	
 	la	$a0, message5	
->>>>>>> 03993aa99818e7e28d90e0008bad71a6cd91e429
 	syscall
 	
 	la	$a0, message6	
@@ -813,7 +801,3 @@ NeareastLeapYears:
 	add $v0, $s3, $0
 	add $v1, $s4, $0
 	jr $ra
-<<<<<<< HEAD
-=======
-
->>>>>>> 03993aa99818e7e28d90e0008bad71a6cd91e429
