@@ -4,7 +4,7 @@
 	userInput: .space 10
 	lengthInput: .space 4
 	time1_test: .asciiz "08/12/2018"
-	time2_test: .asciiz "09/09/1998"
+	time2_test: .asciiz "14/4/2018"
 
 	#chien
 	strData: .space 11
@@ -28,10 +28,18 @@ main:
 	la $a0, time2_test
 	la $a1, time1_test
 	
-	jal WeakDay
+	jal NeareastLeapYears
 	
 	add $a0, $v0, $0
+	addi $v0, $0, 1
+	syscall
+	
+	la $a0, newLine
 	addi $v0, $0, 4
+	syscall
+	
+	add $a0, $v1, $0
+	addi $v0, $0, 1
 	syscall
 	
 	#Tho�t chuong tr�nh
@@ -574,3 +582,55 @@ WeakDay:
 	WD_Sat:
 		la $v0, Sat
 		jr $ra
+#####################################################################
+# a0: time
+# v0: year1
+# v1: year2
+NeareastLeapYears:
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
+	jal Year
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+	add $s0, $v0, $0
+	addi $s1, $s0, -1
+		
+	LoopYear1:
+		addi $sp, $sp, -12 
+		sw $ra, 0($sp)
+		sw $s0, 4($sp)
+		sw $s1, 8($sp)
+		add $a0, $s1, $0
+		jal is_leap
+		lw $ra, 0($sp)
+		lw $s0, 4($sp)
+		lw $s1, 8($sp)
+		addi $sp, $sp, 12
+		
+		bne $v0, $0, ok_year1
+		addi $s1, $s1, -1
+		j LoopYear1
+	ok_year1:
+	addi $s2, $s0, 1
+	
+	LoopYear2:
+		addi $sp, $sp, -16
+		sw $ra, 0($sp)
+		sw $s0, 4($sp)
+		sw $s1, 8($sp)
+		sw $s2, 12($sp)
+		add $a0, $s2, $0
+		jal is_leap
+		lw $ra, 0($sp)
+		lw $s0, 4($sp)
+		lw $s1, 8($sp)
+		lw $s2, 12($sp)
+		addi $sp, $sp, 16
+		
+		bne $v0, $0, ok_year2
+		addi $s2, $s2, 1
+		j LoopYear2
+	ok_year2:
+	add $v0, $s1, $0
+	add $v1, $s2, $0
+	jr $ra
