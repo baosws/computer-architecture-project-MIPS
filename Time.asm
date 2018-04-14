@@ -4,7 +4,7 @@
 	userInput: .space 10
 	lengthInput: .space 4
 	time1_test: .asciiz "08/12/2018"
-	time2_test: .asciiz "14/4/2018"
+	time2_test: .asciiz "14/4/1903"
 
 	#chien
 	strData: .space 11
@@ -592,45 +592,80 @@ NeareastLeapYears:
 	jal Year
 	lw $ra, 0($sp)
 	addi $sp, $sp, 4
-	add $s0, $v0, $0
-	addi $s1, $s0, -1
-		
-	LoopYear1:
-		addi $sp, $sp, -12 
-		sw $ra, 0($sp)
-		sw $s0, 4($sp)
-		sw $s1, 8($sp)
-		add $a0, $s1, $0
-		jal is_leap
-		lw $ra, 0($sp)
-		lw $s0, 4($sp)
-		lw $s1, 8($sp)
-		addi $sp, $sp, 12
-		
-		bne $v0, $0, ok_year1
-		addi $s1, $s1, -1
-		j LoopYear1
-	ok_year1:
-	addi $s2, $s0, 1
 	
-	LoopYear2:
-		addi $sp, $sp, -16
+	add $s0, $v0, $0
+	add $s1, $s0, $0
+	add $s2, $0, $0 # count
+	# s3: v0, $s4: v1
+	
+	SearchLeapYears:		
+		addi $s0, $s0, -1
+		addi $s1, $s1, 1
+
+		# find nearest lower
+		addi $sp, $sp, -24
 		sw $ra, 0($sp)
 		sw $s0, 4($sp)
 		sw $s1, 8($sp)
 		sw $s2, 12($sp)
-		add $a0, $s2, $0
+		sw $s3, 16($sp)
+		sw $s4, 20($sp)
+		
+		add $a0, $s0, $0
 		jal is_leap
 		lw $ra, 0($sp)
 		lw $s0, 4($sp)
 		lw $s1, 8($sp)
 		lw $s2, 12($sp)
-		addi $sp, $sp, 16
+		lw $s3, 16($sp)
+		lw $s4, 20($sp)
+		addi $sp, $sp, 24
 		
-		bne $v0, $0, ok_year2
+		beq $v0, $0, keep_finding
+		addi $t0, $0, 2
+		beq $s2, $t0, Found # count >= 2
+		
+		beq $s2, $0, add_v0_low
+		add $s4, $s0, $0
 		addi $s2, $s2, 1
-		j LoopYear2
-	ok_year2:
-	add $v0, $s1, $0
-	add $v1, $s2, $0
+		j keep_finding
+		add_v0_low:
+		add $s3, $s0, $0
+		addi $s2, $s2, 1
+		
+		keep_finding:
+		# find nearest upper
+		addi $sp, $sp, -24
+		sw $ra, 0($sp)
+		sw $s0, 4($sp)
+		sw $s1, 8($sp)
+		sw $s2, 12($sp)
+		sw $s3, 16($sp)
+		sw $s4, 20($sp)
+		
+		add $a0, $s1, $0
+		jal is_leap
+		lw $ra, 0($sp)
+		lw $s0, 4($sp)
+		lw $s1, 8($sp)
+		lw $s2, 12($sp)
+		lw $s3, 16($sp)
+		lw $s4, 20($sp)
+		addi $sp, $sp, 24
+		
+		beq $v0, $0, SearchLeapYears
+		addi $t0, $0, 2
+		beq $s2, $t0, Found # count >= 2
+		
+		beq $s2, $0, add_v0_upper
+		add $s4, $s1, $0
+		addi $s2, $s2, 1
+		j SearchLeapYears
+		add_v0_upper:
+		add $s3, $s1, $0
+		addi $s2, $s2, 1
+		j SearchLeapYears
+	Found:
+	add $v0, $s3, $0
+	add $v1, $s4, $0
 	jr $ra
