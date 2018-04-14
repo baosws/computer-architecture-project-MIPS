@@ -1,7 +1,26 @@
 .data 
+	#Input 
+	message0: .asciiz "----Ban hay chon mot trong cac thao tac duoi day (1-6): \n"
+	message1: .asciiz "1.Xuat chuoi TIME theo dinh dang dd/mm/yyyy\n"
+	message2: .asciiz "2.Chuyen doi chuoi TIME theo mot trong cac dinh dang:\n"
+	message2_1: .asciiz "\tA. MM/DD/YYYY\n"
+	message2_2: .asciiz "\tB. Month DD, YYYY\n"
+	message2_3: .asciiz "\tC. DD Month, YYYY\n"
+	message3: .asciiz "3.Cho biet ngay vua nhap la ngay thu may trong tuan\n"
+	message4: .asciiz "4.Kiem tra co phai nam Nhuan\n"
+	message5: .asciiz "5.Cho biet khong thoi gian giua chuoi TIME_1 va TIME_2\n"
+	message6: .asciiz "6.Cho biet hai nam nhuan gan nhat voi nam trong chuoi\n"
+	
+	messageInput: .asciiz "Nhap lua chon: "
+	messageResult: .asciiz "Ket qua: "
+	errorMessage: .asciiz "\nSai dinh dang. Nhap lai: "
+	userInput: .space 1
+	timeInput: .space 10
+	
+
 	userInfo1: .asciiz "Enter dd/mm/yyyy: "
 	userInfo2: .asciiz "\nYou typed in: "
-	userInput: .space 10
+	
 	lengthInput: .space 4
 	time1_test: .asciiz "08/12/2018"
 	time2_test: .asciiz "09/09/2016"
@@ -13,23 +32,129 @@
 	
 	msg_Invaild: .asciiz "The date inputed is invaild"
 	msg_Vaild: .asciiz "The date inputed is Vaild"
+	
+	
 
 #-------------------------------------------------------------
 
 .text 
 main:
-	la $a0, time2_test
-	la $a1, time1_test
+	#la $a0, time2_test
+	#la $a1, time1_test
 	
-	jal LeapYear
+	#jal LeapYear
 	
-	add $a0, $v0, $0
-	addi $v0, $0, 1
+	#add $a0, $v0, $0
+	#addi $v0, $0, 1
+	#syscall
+	
+	
+	##--------Input information-----------
+	addi	$v0, $0, 4
+	la	$a0, message0	
 	syscall
+	
+	la	$a0, message1	
+	syscall
+	
+	la	$a0, message2	
+	syscall
+	
+	la	$a0, message2_1
+	syscall
+	
+	la	$a0, message2_2
+	syscall
+	
+	la	$a0, message2_3
+	syscall
+	
+	la	$a0, message3	
+	syscall
+	
+	la	$a0, message4
+	syscall
+	
+	la	$a0, message5	
+	syscall
+	
+	la	$a0, message6	
+	syscall
+	
+	#---- Read Input ----
+	addi 	$v0, $0, 4
+	la 	$a0, messageInput
+	syscall
+	
+	GetInput:
+	
+	addi	$v0, $0, 12	#read char
+	#addi	$a1, $0, 10
+	#la	$a0, timeInput
+	syscall
+	
+	add $t0, $0, $v0
+	addi $t0, $t0, -48
+	addi $t2, $zero, 1
+	slt	$t1, $t0, $t2	#if $a0<$0 then $t0 =1 else $t0 = 0
+	beq	$t1, 1, ShowError
+	
+	addi	$t2, $zero, 6	#$t2= 9
+	slt	$t1, $t2, $t0	#if 9 < $t0 then $t1 =1
+	beq	$t1, 1, ShowError
+	
+	j ExitGetInput
+	
+	ShowError:
+		addi	$v0, $0, 4
+		la 	$a0, errorMessage
+		syscall
+		j GetInput
+	
+	ExitGetInput:
+	
+	#-----Call function --------
+	addi	$t2, $0, 2		
+	bne	$t0, $t2, Case2		#if $t0!= 1 goto Case2 
+		jal Date		#goi ham Date return char* TIME		
+		add	$a0, $0, $v0
+		addi	$v0, $0, 4
+		syscall
+		j ExitProgram	
+	Case2:
+		addi	$t2, $t2, 1	#if $t0!=2 goto Case3
+		bne	$t0, $t2, Case3
+		
+		
+		j ExitProgram
+	Case3:
+		addi	$t2, $t2, 1	#if $t0!=2 goto Case3
+		bne	$t0, $t2, Case4
+		
+		
+		j ExitProgram
+	Case4:
+		addi	$t2, $t2, 1	#if $t0!=2 goto Case3
+		bne	$t0, $t2, Case5
+		
+		
+		j ExitProgram
+	Case5:
+		addi	$t2, $t2, 1	#if $t0!=2 goto Case3
+		bne	$t0, $t2, Case6
+		
+		
+		j ExitProgram
+	Case6:
+		
+		
+		
+		j ExitProgram
 	
 	#Tho�t chuong tr�nh
-	li $v0, 10
-	syscall
+	ExitProgram:
+		li	$v0, 10
+		syscall
 	
 
 #-------------------------------------------------------------
