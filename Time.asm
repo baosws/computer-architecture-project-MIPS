@@ -21,8 +21,9 @@
 	LeapYear2: .asciiz "Khong phai nam nhuan\n"
 
 #	time1_test: .asciiz "08/12/2018"
-
+	
 	strData: .space 11
+	strResConvert: .space 20
 	newLine: .asciiz "\n"
 	slash:	.byte	'/'
 	space:	.byte 32
@@ -51,6 +52,13 @@ main:
 	#string date is stored in $v0
 
 	add	$s0, $0, $v0	#gan chuoi TIME vao $s0 
+	
+
+	#test convert
+	add	$a0, $s0, $0
+	addi	$a1, $0, 67
+	jal	convert
+
 	
 	addi	$v0, $0, 4
 	la	$a0, msg_Vaild
@@ -258,6 +266,7 @@ Day:
 		add $t0, $t0, $t2
 		addi $a0, $a0, 1
 		j LoopDay
+
 	ExitLoopDay:
 
 	add $v0, $t0, $0			#Luu $v0 de tra ve
@@ -542,18 +551,19 @@ checkLogic:	#bool checkLogic(int day, int month, int  year)
 	slti	$t3, $a2, 1900
 	bne	$t3, $0, checkLogic_invaild	#yaer >= 1900
 
-	addi	$sp, $sp, -12
+	addi	$sp, $sp, -4
 	sw	$ra, 0($sp)
-	sw	$a1, 4($sp)
-	sw	$a2, 8($sp)
-	add	$t3, $a0, $0	#save a0
+	add	$a0, $a1, $0
+	add	$a1, $a2, $0
+
 	jal	month_number	#get the mumber of month
 
 	add	$a0, $t3, $0	#restore a0
 
 	lw	$ra, 0($sp)
-	addi	$sp, $sp, 12
+	addi	$sp, $sp, 4
 	add	$t4, $v0, $0	#$t4 = number of mOnth
+
 	slt	$t3, $t4, $a0
 	bne	$t3, $0, checkLogic_invaild	#day <= numberofmonth
 
@@ -566,6 +576,7 @@ checkLogic:	#bool checkLogic(int day, int month, int  year)
 
 # a0: month, a1: year
 month_number:
+
 	addi $t0, $a0, -1
 	beq	$t0, $0, cs31 # month = 1
 	
@@ -601,7 +612,7 @@ month_number:
 
 	# month = 2
 	addi 	$sp, $sp,  -4
-	add	$a0, $a1, $0
+	add	$a0, $a2, $0
 	sw 	$ra, 0($sp)
 	jal	is_leap
 	lw	$ra, 0($sp)
@@ -958,3 +969,473 @@ NeareastLeapYears:
 	add $v1, $s4, $0
 
 	jr $ra
+
+#####
+#$a0: string, $a1: char
+convert:
+	
+	addi	$sp, $sp, -8
+
+	sw	$ra, 0($sp)
+	sw	$a0, 4($sp)
+
+	jal	Day
+	add	$t5, $v0, $0	#t5: day	
+	lw	$a0, 4($sp)	
+
+	jal	Month
+	add	$t6, $v0, $0	#t6: Month
+	lw	$a0, 4($sp)
+	
+	jal	Year
+	add	$t7, $v0, $0	#t7: year
+	lw	$ra, 0($sp)
+	add	$sp, $sp, 8
+
+	add	$t0, $a1, $0	#char type
+	add	$a0, $t5, $0	#a0: day
+	add	$a1, $t6, $0	#a1: month
+	add	$a2, $t7, $0	#a2: year
+
+	la	$v1, strResConvert 
+	addi	$t4, $0, 10
+
+	addi	$t1, $t0, -65	#'A'
+	beq	$t1, $0, convert_type_A
+	addi	$t1, $t0, -66	#'B'
+	beq	$t1, $0, convert_type_B
+	addi	$t1, $t0, -67	#'C'
+	beq	$t1, $0, convert_type_C
+	
+	
+convert_type_A:
+#month
+	div	$a1, $t4
+	mfhi	$t1	#du
+	mflo	$t2	#nguyen
+	addi	$t1, $t1, 48
+	sb	$t1, 1($v1)
+	addi	$t2, $t2, 48
+	sb	$t2, 0($v1)
+
+	addi	$t1, $0, 47
+	sb	$t1, 2($v1)
+	sb	$t1, 5($v1)
+	sb	$0, 10($v1)
+
+#day  
+	div	$a0, $t4
+	mfhi	$t1	#du
+	mflo	$t2	#nguyen
+	addi	$t1, $t1, 48
+	sb	$t1, 4($v1)
+	addi	$t2, $t2, 48
+	sb	$t2, 3($v1)
+
+
+#year
+	div	$a2, $t4
+	mfhi	$t1	#du
+	mflo	$a2	#nguyen
+	addi	$t1, $t1, 48
+	sb	$t1, 9($v1)
+
+	div	$a2, $t4
+	mfhi	$t1	#du
+	mflo	$a2	#nguyen
+	addi	$t1, $t1, 48
+	sb	$t1, 8($v1)
+
+
+	div	$a2, $t4
+	mfhi	$t1	#du
+	mflo	$a2	#nguyen
+	addi	$t1, $t1, 48
+	sb	$t1, 7($v1)
+
+
+	div	$a2, $t4
+	mfhi	$t1	#du
+	mflo	$a2	#nguyen
+	addi	$t1, $t1, 48
+	sb	$t1, 6($v1)
+
+#cout
+	addi	$v0, $0, 4
+#	addi	$a0, $v1, 0
+	la	$a0, strResConvert
+	syscall
+	
+	jr $ra
+
+convert_type_B:
+#month
+	addi	$t0, $a1, -1
+	beq	$t0, $0, Jan
+
+	addi	$t0, $a1, -2
+	beq	$t0, $0, Feb
+
+	addi	$t0, $a1, -3
+	beq	$t0, $0, Mar
+
+	addi	$t0, $a1, -4
+	beq	$t0, $0, Apr
+
+	addi	$t0, $a1, -5
+	beq	$t0, $0, May
+
+	addi	$t0, $a1, -6
+	beq	$t0, $0, Jun
+
+	addi	$t0, $a1, -7
+	beq	$t0, $0, Jul
+
+	addi	$t0, $a1, -8
+	beq	$t0, $0, Aug
+
+	addi	$t0, $a1, -9
+	beq	$t0, $0, Sep
+
+	addi	$t0, $a1, -10
+	beq	$t0, $0, Otc
+
+	addi	$t0, $a1, -11
+	beq	$t0, $0, Nov
+
+	addi	$t0, $a1, -12
+	beq	$t0, $0, Dec
+
+Continue_B:
+	addi	$t0, $0, 32
+	sb	$t0, 3($v1)	# ' '	
+
+#day  
+	div	$a0, $t4
+	mfhi	$t1	#du
+	mflo	$t2	#nguyen
+	addi	$t1, $t1, 48
+	sb	$t1, 5($v1)
+	addi	$t2, $t2, 48
+	sb	$t2, 4($v1)
+	
+	addi	$t0, $0, 44
+	sb	$t0, 6($v1)	# ','
+	addi	$t0, $0, 32
+	sb	$t0, 7($v1)	# ' '
+	
+	j	YearString	
+	
+convert_type_C:
+#day
+	div	$a0, $t4
+	mfhi	$t1	#du
+	mflo	$t2	#nguyen
+	addi	$t1, $t1, 48
+	sb	$t1, 1($v1)
+	addi	$t2, $t2, 48
+	sb	$t2, 0($v1)
+	
+	addi	$t2, $0, 32
+	sb	$t2, 2($v1)
+
+#month
+	addi	$t0, $a1, -1
+	beq	$t0, $0, JanC
+
+	addi	$t0, $a1, -2
+	beq	$t0, $0, FebC
+
+	addi	$t0, $a1, -3
+	beq	$t0, $0, MarC
+
+	addi	$t0, $a1, -4
+	beq	$t0, $0, AprC
+
+	addi	$t0, $a1, -5
+	beq	$t0, $0, MayC
+
+	addi	$t0, $a1, -6
+	beq	$t0, $0, JunC
+
+	addi	$t0, $a1, -7
+	beq	$t0, $0, JulC
+
+	addi	$t0, $a1, -8
+	beq	$t0, $0, AugC
+
+	addi	$t0, $a1, -9
+	beq	$t0, $0, SepC
+
+	addi	$t0, $a1, -10
+	beq	$t0, $0, OtcC
+
+	addi	$t0, $a1, -11
+	beq	$t0, $0, NovC
+
+	addi	$t0, $a1, -12
+	beq	$t0, $0, DecC
+Continue_C:
+	addi	$t0, $0, 44
+	sb	$t0, 6($v1)
+	addi	$t0, $0, 32
+	sb	$t0, 7($v1)
+
+	j 	YearString
+
+Jan:
+	addi 	$t0, $0, 74	#J
+	sb	$t0, 0($v1)
+	addi 	$t0, $0, 97	#a
+	sb	$t0, 1($v1)
+	addi 	$t0, $0, 110	#n
+	sb	$t0, 2($v1)
+	j	Continue_B
+			
+Feb:
+	addi 	$t0, $0, 70	#F
+	sb	$t0, 0($v1)
+	addi 	$t0, $0, 101	#e
+	sb	$t0, 1($v1)
+	addi 	$t0, $0, 98	#b
+	sb	$t0, 2($v1)
+	j	Continue_B
+
+Mar:
+	addi 	$t0, $0, 77	#M
+	sb	$t0, 0($v1)
+	addi 	$t0, $0, 97	#a
+	sb	$t0, 1($v1)
+	addi 	$t0, $0, 114	#r
+	sb	$t0, 2($v1)
+	j	Continue_B
+
+Apr:
+	addi 	$t0, $0, 65	#A
+	sb	$t0, 0($v1)
+	addi 	$t0, $0, 112	#p
+	sb	$t0, 1($v1)
+	addi 	$t0, $0, 114	#r
+	sb	$t0, 2($v1)
+	j	Continue_B
+
+May:
+	addi 	$t0, $0, 77	#M
+	sb	$t0, 0($v1)
+	addi 	$t0, $0, 97	#a
+	sb	$t0, 1($v1)
+	addi 	$t0, $0, 121	#y
+	sb	$t0, 2($v1)
+	j	Continue_B
+
+
+
+Jun:
+	addi 	$t0, $0, 74	#J
+	sb	$t0, 0($v1)
+	addi 	$t0, $0, 117	#u
+	sb	$t0, 1($v1)
+	addi 	$t0, $0, 110	#n
+	sb	$t0, 2($v1)
+	j	Continue_B
+
+Jul:
+	addi 	$t0, $0, 74	#J
+	sb	$t0, 0($v1)
+	addi 	$t0, $0, 117	#u
+	sb	$t0, 1($v1)
+	addi 	$t0, $0, 108	#l
+	sb	$t0, 2($v1)
+	j	Continue_B
+
+Aug:
+	addi 	$t0, $0, 65	#A
+	sb	$t0, 0($v1)
+	addi 	$t0, $0, 117	#u
+	sb	$t0, 1($v1)
+	addi 	$t0, $0, 103	#g
+	sb	$t0, 2($v1)
+	j	Continue_B
+
+Sep:
+	addi 	$t0, $0, 83	#S
+	sb	$t0, 0($v1)
+	addi 	$t0, $0, 101	#e
+	sb	$t0, 1($v1)
+	addi 	$t0, $0, 112	#p
+	sb	$t0, 2($v1)
+	j	Continue_B
+
+Otc:
+	addi 	$t0, $0, 79	#O
+	sb	$t0, 0($v1)
+	addi 	$t0, $0, 116	#t
+	sb	$t0, 1($v1)
+	addi 	$t0, $0, 99	#c
+	sb	$t0, 2($v1)
+	j	Continue_B
+
+Nov:
+	addi 	$t0, $0, 78	#N
+	sb	$t0, 0($v1)
+	addi 	$t0, $0, 111	#o
+	sb	$t0, 1($v1)
+	addi 	$t0, $0, 118	#v
+	sb	$t0, 2($v1)
+	j	Continue_B
+
+Dec:
+	addi 	$t0, $0, 68	#D
+	sb	$t0, 0($v1)
+	addi 	$t0, $0, 101	#e
+	sb	$t0, 1($v1)
+	addi 	$t0, $0, 100	#c
+	sb	$t0, 2($v1)
+	j	Continue_B
+
+JanC:
+	addi 	$t0, $0, 74	#J
+	sb	$t0, 3($v1)
+	addi 	$t0, $0, 97	#a
+	sb	$t0, 4($v1)
+	addi 	$t0, $0, 110	#n
+	sb	$t0, 5($v1)
+	j	Continue_C
+			
+FebC:
+	addi 	$t0, $0, 70	#F
+	sb	$t0, 3($v1)
+	addi 	$t0, $0, 101	#e
+	sb	$t0, 4($v1)
+	addi 	$t0, $0, 98	#b
+	sb	$t0, 5($v1)
+	j	Continue_C
+
+MarC:
+	addi 	$t0, $0, 77	#M
+	sb	$t0, 3($v1)
+	addi 	$t0, $0, 97	#a
+	sb	$t0, 4($v1)
+	addi 	$t0, $0, 114	#r
+	sb	$t0, 5($v1)
+	j	Continue_C
+
+AprC:
+	addi 	$t0, $0, 65	#A
+	sb	$t0, 3($v1)
+	addi 	$t0, $0, 112	#p
+	sb	$t0, 4($v1)
+	addi 	$t0, $0, 114	#r
+	sb	$t0, 5($v1)
+	j	Continue_C
+
+MayC:
+	addi 	$t0, $0, 77	#M
+	sb	$t0, 3($v1)
+	addi 	$t0, $0, 97	#a
+	sb	$t0, 4($v1)
+	addi 	$t0, $0, 121	#y
+	sb	$t0, 5($v1)
+	j	Continue_C
+
+
+
+JunC:
+	addi 	$t0, $0, 74	#J
+	sb	$t0, 3($v1)
+	addi 	$t0, $0, 117	#u
+	sb	$t0, 4($v1)
+	addi 	$t0, $0, 110	#n
+	sb	$t0, 5($v1)
+	j	Continue_C
+
+JulC:
+	addi 	$t0, $0, 74	#J
+	sb	$t0, 3($v1)
+	addi 	$t0, $0, 117	#u
+	sb	$t0, 4($v1)
+	addi 	$t0, $0, 108	#l
+	sb	$t0, 5($v1)
+	j	Continue_C
+
+AugC:
+	addi 	$t0, $0, 65	#A
+	sb	$t0, 3($v1)
+	addi 	$t0, $0, 117	#u
+	sb	$t0, 4($v1)
+	addi 	$t0, $0, 103	#g
+	sb	$t0, 5($v1)
+	j	Continue_C
+
+SepC:
+	addi 	$t0, $0, 83	#S
+	sb	$t0, 3($v1)
+	addi 	$t0, $0, 101	#e
+	sb	$t0, 4($v1)
+	addi 	$t0, $0, 112	#p
+	sb	$t0, 5($v1)
+	j	Continue_C
+
+OtcC:
+	addi 	$t0, $0, 79	#O
+	sb	$t0, 3($v1)
+	addi 	$t0, $0, 116	#t
+	sb	$t0, 4($v1)
+	addi 	$t0, $0, 99	#c
+	sb	$t0, 5($v1)
+	j	Continue_C
+
+NovC:
+	addi 	$t0, $0, 78	#N
+	sb	$t0, 3($v1)
+	addi 	$t0, $0, 111	#o
+	sb	$t0, 4($v1)
+	addi 	$t0, $0, 118	#v
+	sb	$t0, 5($v1)
+	j	Continue_C
+
+DecC:
+	addi 	$t0, $0, 68	#D
+	sb	$t0, 3($v1)
+	addi 	$t0, $0, 101	#e
+	sb	$t0, 4($v1)
+	addi 	$t0, $0, 100	#c
+	sb	$t0, 5($v1)
+	j	Continue_C
+
+YearString:
+	
+#year
+	div	$a2, $t4
+	mfhi	$t1	#du
+	mflo	$a2	#nguyen
+	addi	$t1, $t1, 48
+	sb	$t1, 11($v1)
+
+	div	$a2, $t4
+	mfhi	$t1	#du
+	mflo	$a2	#nguyen
+	addi	$t1, $t1, 48
+	sb	$t1, 10($v1)
+
+
+	div	$a2, $t4
+	mfhi	$t1	#du
+	mflo	$a2	#nguyen
+	addi	$t1, $t1, 48
+	sb	$t1, 9($v1)
+
+
+	div	$a2, $t4
+	mfhi	$t1	#du
+	mflo	$a2	#nguyen
+	addi	$t1, $t1, 48
+	sb	$t1, 8($v1)
+	
+	addi	$v0, $0, 4
+#	addi	$a0, $v1, 0
+	la	$a0, strResConvert
+	syscall
+	
+
+	jr	$ra
