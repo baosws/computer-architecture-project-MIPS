@@ -15,17 +15,14 @@
 	messageInput: .asciiz "Nhap lua chon: "
 	messageResult: .asciiz "\nKet qua: "
 	errorMessage: .asciiz "\nSai dinh dang. Nhap lai: "
-	timeInputMessage: .asciiz "\nNhap chuoi time2 dd/mm/yyy:\n"
+	timeInputMessage: .asciiz "\nNhap chuoi TIME_2 (dd/mm/yyyy): "
 
 	LeapYear1: .asciiz "La nam nhuan\n"
 	LeapYear2: .asciiz "Khong phai nam nhuan\n"
 
-#	time1_test: .asciiz "08/12/2018"
-
 	strData: .space 11
 	newLine: .asciiz "\n"
 	slash:	.byte	'/'
-	space:	.byte 32
 	
 	msg_inp_day: .asciiz "Input Day: "
 	msg_inp_month: .asciiz "Input Month: "
@@ -44,7 +41,6 @@
 	Fri: .asciiz "Fri"
 	Sat: .asciiz "Sat"
 #-------------------------------------------------------------
-
 .text
 main:
 	jal  inputDate
@@ -119,13 +115,14 @@ main:
 
 	#-----Call function --------
 	addi	$t2, $0, 1
-	bne	$t0, $t2, Case2		#if $t0!= 1 goto Case2
-	
-		addi	$v0, $0, 4
+	bne	$t0, $t2, Case2			#if $t0!= 1 goto Case2
+		#Case1:	#Done
 		la	$a0, messageResult	#print message result
+		addi	$v0, $0, 4
 		syscall
 
-		addi	$a0, $s0, 0
+		add	$a0, $s0, $0
+		#addi	$v0, $0, 4
 		syscall
 		j ExitProgram
 	Case2:
@@ -136,10 +133,13 @@ main:
 		addi	$v0, $0, 4
 		syscall
 
-		addi	$v0, $0, 12		#read char
+		addi	$v0, $0, 12	#read char
 		syscall			#saved in $v0
+		
+		add	$a1, $v0, $0
+		add	$a0, $s0, $0
 
-		#jal Convert		#char* Convert(char* TIME, char type) <=> TIME= $a0, type = $v0
+		jal Convert		#char* Convert(char* TIME, char type) <=> TIME= $a0, type = $a1
 
 		add	$t4, $0, $v0	#gan tam ket qua bao $t4
 		la	$a0, messageResult	#print message result
@@ -151,7 +151,7 @@ main:
 		syscall
 
 		j ExitProgram
-	Case3:
+	Case3:	#done
 		addi	$t2, $t2, 1	#if $t0!=3 goto Case4
 		bne	$t0, $t2, Case4
 		
@@ -188,29 +188,35 @@ main:
 
 		j ExitProgram
 	#khoang time giua hai char* TIME
-	Case5:
+	Case5:	#done
 		addi	$t2, $t2, 1
 		bne	$t0, $t2, Case6
 
 		la	$a0, timeInputMessage
 		addi	$v0, $0, 4
 		syscall
-
-		jal 	inputDate
-		add	$a1, $0, $v0	#gan TIME_2 ket qua tra ve
-		add	$a0, $0, $s0	#gan TIME_1 ket qua duoc luu tu dau
-		jal	GetTime
 		
+		addi	$v0, $0, 8		#read dd/mm/yyyy
+		addi	$a1, $0, 11			
+							
+		syscall
+		add	$a1, $0, $a0		#gan TIME_2 ket qua tra ve
+		
+		add	$a0, $0, $s0		#gan TIME_1 ket qua duoc luu tu dau
+		##print
+		
+		
+		jal	GetTime		
 		add	$t4, $0, $v0
 		la	$a0, messageResult	#print message result
 		addi	$v0, $0, 4
-		
+		syscall
 		add	$a0, $0, $t4
 		addi	$v0, $0, 1
 		syscall
 
 		j ExitProgram
-	Case6:
+	Case6:	#done
 		add	$a0, $0, $s0
 		jal	NeareastLeapYears	#result in $v0, $v1
 
@@ -224,8 +230,8 @@ main:
 		add	$a0, $0, $t4		#ket qua nam nhuan gan thu 1
 		syscall
 
-		addi	$v0, $0, 11		#print space
-		la	$a0, space
+		addi	$v0, $0, 11		
+		addi	$a0, $0, 32		#print space
 		syscall	
 
 		addi	$v0, $0, 1
@@ -538,9 +544,6 @@ checkLogic:	#bool checkLogic(int day, int month, int  year)
 	bne	$t3, $0, checkLogic_invaild	#year < 1
 	slti	$t3, $a1, 13
 	beq	$t3, $0, checkLogic_invaild	#month <= 12
-	
-	slti	$t3, $a2, 1900
-	bne	$t3, $0, checkLogic_invaild	#yaer >= 1900
 
 	addi	$sp, $sp, -12
 	sw	$ra, 0($sp)
@@ -628,7 +631,7 @@ month_number:
 # a0: year		-- true: (y % 4==0 && y % 100!=0) && (y%400==0)
 
 is_leap:
-	#lw	$a0, 4($sp)
+	lw	$a0, 4($sp)
 	addi	$t0, $0, 400
 	div	$a0, $t0
 	mfhi	$t0
