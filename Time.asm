@@ -25,7 +25,7 @@
 	strData: .space 11
 	newLine: .asciiz "\n"
 	slash:	.byte	'/'
-	space:	.byte ' '
+	space:	.byte 32
 	
 	msg_inp_day: .asciiz "Input Day: "
 	msg_inp_month: .asciiz "Input Month: "
@@ -211,6 +211,7 @@ main:
 
 		j ExitProgram
 	Case6:
+		add	$a0, $0, $s0
 		jal	NeareastLeapYears	#result in $v0, $v1
 
 		add	$t4, $0, $v0 		#Gan tam nam nhuan thu 1 vao $t4
@@ -223,12 +224,12 @@ main:
 		add	$a0, $0, $t4		#ket qua nam nhuan gan thu 1
 		syscall
 
-		addi	$v0, $0, 11
+		addi	$v0, $0, 11		#print space
 		la	$a0, space
 		syscall	
 
 		addi	$v0, $0, 1
-		add	$a0, $0, $v1
+		add	$a0, $0, $v1		#Ket qua nam nhuan gan thu 2
 		syscall
 
 		j ExitProgram
