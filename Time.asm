@@ -40,6 +40,8 @@
 	Thurs: .asciiz "Thurs"
 	Fri: .asciiz "Fri"
 	Sat: .asciiz "Sat"
+	
+	
 #-------------------------------------------------------------
 .text
 main:
