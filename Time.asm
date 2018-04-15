@@ -120,16 +120,12 @@ main:
 	#-----Call function --------
 	addi	$t2, $0, 1
 	bne	$t0, $t2, Case2		#if $t0!= 1 goto Case2
-		#jal Date		#goi ham Date return char* TIME
-
-		add	$t4, $0, $v0	#gan tam ket qua bao $t4
-		la	$a0, messageResult	#print message result
-
+	
 		addi	$v0, $0, 4
+		la	$a0, messageResult	#print message result
 		syscall
 
-		add	$a0, $0, $t4	#Gan ket qua vao $a0 de xuat
-		#addi	$v0, $0, 4
+		addi	$a0, $s0, 0
 		syscall
 		j ExitProgram
 	Case2:
@@ -541,6 +537,9 @@ checkLogic:	#bool checkLogic(int day, int month, int  year)
 	bne	$t3, $0, checkLogic_invaild	#year < 1
 	slti	$t3, $a1, 13
 	beq	$t3, $0, checkLogic_invaild	#month <= 12
+	
+	slti	$t3, $a2, 1900
+	bne	$t3, $0, checkLogic_invaild	#yaer >= 1900
 
 	addi	$sp, $sp, -12
 	sw	$ra, 0($sp)
@@ -628,7 +627,7 @@ month_number:
 # a0: year		-- true: (y % 4==0 && y % 100!=0) && (y%400==0)
 
 is_leap:
-	lw	$a0, 4($sp)
+	#lw	$a0, 4($sp)
 	addi	$t0, $0, 400
 	div	$a0, $t0
 	mfhi	$t0
