@@ -20,10 +20,7 @@
 	LeapYear1: .asciiz "La nam nhuan\n"
 	LeapYear2: .asciiz "Khong phai nam nhuan\n"
 
-	time1_test: .asciiz "08/12/2018"
-
-	time2_test: .asciiz "14/4/1903"
-	time2_test: .asciiz "14/4/9999"
+#	time1_test: .asciiz "08/12/2018"
 
 	strData: .space 11
 	newLine: .asciiz "\n"
@@ -569,30 +566,8 @@ checkLogic:	#bool checkLogic(int day, int month, int  year)
 
 # a0: month, a1: year
 month_number:
-	lw	$a0, 4($sp) #a1= month
-	lw	$a1, 8($sp) #a2 = yaer
-
 	addi $t0, $a0, -1
 	beq	$t0, $0, cs31 # month = 1
-<<<<<<< HEAD
-
-	addi $t0, $a1, -3
-	beq	$t0, $0, cs31 # month = 3
-
-	addi $t0, $a1, -5
-	beq	$t0, $0, cs31 # month = 5
-
-	addi $t0, $a1, -7
-	beq	$t0, $0, cs31 # month = 7
-
-	addi $t0, $a1, -8
-	beq	$t0, $0, cs31 # month = 8
-
-	addi $t0, $a1, -10
-	beq	$t0, $0, cs31 # month = 10
-
-	addi $t0, $a1, -12
-=======
 	
 	addi $t0, $a0, -3
 	beq	$t0, $0, cs31 # month = 3
@@ -610,21 +585,10 @@ month_number:
 	beq	$t0, $0, cs31 # month = 10
 	
 	addi $t0, $a0, -12
->>>>>>> aba164e8cd0da459f3a3cd96ecbb8e2118e5a935
 	beq	$t0, $0, cs31 # month = 12
 
 	addi $t0, $a0, -4
 	beq	$t0, $0, cs30 # month = 4
-<<<<<<< HEAD
-
-	addi $t0, $a1, -6
-	beq	$t0, $0, cs30 # month = 6
-
-	addi $t0, $a1, -9
-	beq	$t0, $0, cs30 # month = 9
-
-	addi $t0, $a1, -11
-=======
 	
 	addi $t0, $a0, -6
 	beq	$t0, $0, cs30 # month = 6
@@ -633,24 +597,18 @@ month_number:
 	beq	$t0, $0, cs30 # month = 9
 	
 	addi $t0, $a0, -11
->>>>>>> aba164e8cd0da459f3a3cd96ecbb8e2118e5a935
 	beq	$t0, $0, cs30 # month = 11
 
 	# month = 2
-	addi 	$sp, $sp,  -8
+	addi 	$sp, $sp,  -4
+	add	$a0, $a1, $0
 	sw 	$ra, 0($sp)
-	sw	$a1, 4($sp)
 	jal	is_leap
 	lw	$ra, 0($sp)
-<<<<<<< HEAD
 	addi  	$sp, $sp, 4
 
-=======
-	addi  	$sp, $sp, 8
-	
->>>>>>> aba164e8cd0da459f3a3cd96ecbb8e2118e5a935
-	add	$t2, $v0, $0	#if leap() then t2 = 1
-	beq	$t2, $0, cs28	#if leap == false
+	add	$t0, $v0, $0	#if leap() then t2 = 1
+	beq	$t0, $0, cs28	#if leap == false
 	addi	$v0, $0, 29
 	j end_chklg
 
